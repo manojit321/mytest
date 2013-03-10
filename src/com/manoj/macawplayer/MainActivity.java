@@ -3,6 +3,7 @@ package com.manoj.macawplayer;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 
 import com.manoj.helper.Song;
@@ -17,6 +18,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.view.Menu;
 import android.view.View;
+import android.view.Window;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.widget.ImageButton;
@@ -56,6 +58,8 @@ public class MainActivity extends Activity implements OnCompletionListener,
 	private SongInfo sInfo=new SongInfo();
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		//Remove title bar
+		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 		
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.player);
@@ -84,8 +88,7 @@ public class MainActivity extends Activity implements OnCompletionListener,
 		// get all songs
 		if(songsList.isEmpty()){
 		//!songsList = songManager.getPlayList();
-			SongInfo si=new SongInfo();
-			songsList = si.getSongs(getContentResolver());
+			songsList = sInfo.getSongs(getContentResolver());
 		}
 		
 		mp.setOnCompletionListener(new OnCompletionListener() {
@@ -171,6 +174,7 @@ public class MainActivity extends Activity implements OnCompletionListener,
 			public void onClick(View v){
 				if(isShuffle){
 					isShuffle=false;
+					songsList = sInfo.getSongs(getContentResolver());
 					Toast.makeText(getApplicationContext(), "Shuffle is OFF", Toast.LENGTH_SHORT).show();
                     btnShuffle.setImageResource(R.drawable.bn_shuffle);
 				}
@@ -179,6 +183,7 @@ public class MainActivity extends Activity implements OnCompletionListener,
 					Toast.makeText(getApplicationContext(), "Shuffle is ON", Toast.LENGTH_SHORT).show();
                     // make shuffle to false
                     isRepeat = false;
+                    Collections.shuffle(songsList);
                     btnShuffle.setImageResource(R.drawable.btn_shufflefocused);
 				}
 			}
@@ -204,17 +209,21 @@ public class MainActivity extends Activity implements OnCompletionListener,
         try {
             bitmap = MediaStore.Images.Media.getBitmap(
             		getContentResolver(), song.getAlbumArtUrl());
+            if(bitmap!=null)
             bitmap = Bitmap.createScaledBitmap(bitmap, bitmap.getWidth(), bitmap.getHeight(), true);
             song.setBitmap(bitmap);
         } catch (FileNotFoundException exception) {
             exception.printStackTrace();
+            coverAlbum.setImageResource(R.drawable.images);
         } catch (IOException e) {
 
             e.printStackTrace();
         }
+        if(song.getBitmap()!=null){
 		coverAlbum.setImageBitmap(song.getBitmap());
 		coverAlbum.setMinimumHeight(song.getBitmap().getHeight());
 		coverAlbum.setMinimumWidth(song.getBitmap().getWidth());
+        }
 		songTitleLable.setText(song.getTitle());
 		// Changing Button Image to pause image
         btnPlay.setImageResource(R.drawable.btn_pause);
