@@ -1,5 +1,7 @@
 package com.manoj.macawplayer;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -9,8 +11,10 @@ import com.manoj.helper.Utilities;
 
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.MediaStore;
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.view.Menu;
 import android.view.View;
 import android.media.MediaPlayer;
@@ -196,6 +200,18 @@ public class MainActivity extends Activity implements OnCompletionListener,
 		//display title
 		//!String title=songsList.get(index).get("songTitle");
 		//!songTitleLable.setText(title);
+		Bitmap bitmap = null;
+        try {
+            bitmap = MediaStore.Images.Media.getBitmap(
+            		getContentResolver(), song.getAlbumArtUrl());
+            bitmap = Bitmap.createScaledBitmap(bitmap, bitmap.getWidth(), bitmap.getHeight(), true);
+            song.setBitmap(bitmap);
+        } catch (FileNotFoundException exception) {
+            exception.printStackTrace();
+        } catch (IOException e) {
+
+            e.printStackTrace();
+        }
 		coverAlbum.setImageBitmap(song.getBitmap());
 		coverAlbum.setMinimumHeight(song.getBitmap().getHeight());
 		coverAlbum.setMinimumWidth(song.getBitmap().getWidth());

@@ -36,20 +36,7 @@ public class SongInfo {
 	            Uri sArtworkUri = Uri
                         .parse("content://media/external/audio/albumart");
                 Uri albumArtUri = ContentUris.withAppendedId(sArtworkUri, albumId);
-
-                Bitmap bitmap = null;
-                try {
-                    bitmap = MediaStore.Images.Media.getBitmap(
-                    		contentResolver, albumArtUri);
-                    bitmap = Bitmap.createScaledBitmap(bitmap, bitmap.getWidth(), bitmap.getHeight(), true);
-                    song.setBitmap(bitmap);
-                } catch (FileNotFoundException exception) {
-                    exception.printStackTrace();
-                } catch (IOException e) {
-
-                    e.printStackTrace();
-                }
-
+                song.setAlbumArtUrl(albumArtUri);
 	            if (!result.contains(albumId)){
 	                result.add(albumId);
 	                songList.add(song);

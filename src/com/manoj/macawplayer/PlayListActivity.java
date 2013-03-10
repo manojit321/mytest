@@ -19,7 +19,7 @@ import android.app.ListActivity;
 public class PlayListActivity extends ListActivity {
 	//song list
 	public ArrayList<HashMap<String, String>> songsList=new ArrayList<HashMap<String,String>>();
-	ArrayList songsList1;
+	ArrayList songsList1=new ArrayList();
 	@Override
 	public void onCreate(Bundle savedInstanceState){
 		try{
@@ -29,7 +29,7 @@ public class PlayListActivity extends ListActivity {
 		SongManager songManager=new SongManager();
 		SongInfo si=new SongInfo();
 		
-		if(this.songsList.isEmpty())
+		if(this.songsList1!=null && this.songsList1.isEmpty())
 		 this.songsList1=si.getSongs(getContentResolver());
 		
 			for (int i = 0; i < songsList1.size(); i++) {

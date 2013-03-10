@@ -1,6 +1,7 @@
 package com.manoj.helper;
 
 import android.graphics.Bitmap;
+import android.net.Uri;
 
 public class Song {
    private int album_id;
@@ -11,6 +12,7 @@ public class Song {
    private String artist="";
    private String url="";
    Bitmap bitmap;
+   private Uri albumArtUrl;
 public Bitmap getBitmap() {
 	return bitmap;
 }
@@ -58,6 +60,12 @@ public String getArtist() {
 }
 public void setArtist(String artist) {
 	this.artist = artist;
+}
+public Uri getAlbumArtUrl() {
+	return albumArtUrl;
+}
+public void setAlbumArtUrl(Uri albumArtUrl) {
+	this.albumArtUrl = albumArtUrl;
 }
    
 }
