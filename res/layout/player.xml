@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:background="#000000"
+    >
+    <!-- android:background="@color/player_background"--> 
+     
+    <!-- Player Header -->
+    <LinearLayout
+        android:id="@+id/player_header_bg"
+        android:layout_width="fill_parent"
+        android:layout_height="60dip"
+        android:layout_alignParentTop="true"
+        android:paddingLeft="5dp"
+        android:paddingRight="5dp">
+        <!-- Song Tilte -->
+        <TextView
+            android:id="@+id/songTitle"
+			android:layout_width="0dip"
+            android:layout_height="wrap_content"
+			android:singleLine="true"
+            android:ellipsize="marquee" 
+			android:marqueeRepeatLimit="marquee_forever"
+            android:scrollHorizontally="true"
+            android:layout_weight="1"
+            android:textColor="#04b3d2"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:text="@string/skyfall"
+            android:layout_marginTop="10dp"
+            android:focusable="true"
+			android:focusableInTouchMode="true"
+			android:freezesText="true" 
+         />
+        <!-- playlist button -->
+        <ImageButton 
+        android:id="@+id/btnPlaylist"
+        android:layout_width="wrap_content"    
+        android:layout_height="fill_parent"
+        android:src="@drawable/btn_playlist"
+        android:background="@null"
+        android:contentDescription="@string/skyfall"/>
+    </LinearLayout>
+    
+    <!-- Song Thubnail image -->
+    <LinearLayout
+        android:id="@+id/songThumbnail"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:gravity="center"
+        android:layout_below="@id/player_header_bg">
+    	<ImageView
+    	android:id="@+id/albumArt" 
+    	android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/adele" 
+        android:contentDescription="@string/skyfall"/>
+    </LinearLayout>
+    
+    <!-- Player Footer -->
+
+    <LinearLayout
+        android:id="@+id/player_footer_bg"
+        android:layout_width="match_parent"
+        android:layout_height="71dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_marginBottom="10dp"
+        android:gravity="center" >
+
+
+            <ImageButton
+                android:id="@+id/btnPrevious"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@null"
+                android:src="@drawable/btn_previous" 
+                android:contentDescription="@string/skyfall"
+                />
+
+            <ImageButton
+                android:id="@+id/btnPlay"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@null"
+                android:src="@drawable/btn_play"
+                android:contentDescription="@string/skyfall"
+                android:padding="30dp" 
+                />
+
+            <ImageButton
+                android:id="@+id/btnNext"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@null"
+                android:src="@drawable/btn_next"
+                android:contentDescription="@string/skyfall" />
+    </LinearLayout>
+
+    <!-- seek bar -->
+
+    <SeekBar
+        android:id="@+id/songProgressBar"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/player_footer_bg"
+        android:layout_marginBottom="20dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:progressDrawable="@drawable/seekbar_progress"
+        android:thumb="@drawable/seek_handler"
+         
+        >
+    </SeekBar>
+    
+    <!--Song Time  -->
+    <LinearLayout
+        android:id="@+id/timerDisplay"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/songProgressBar"
+        android:layout_marginRight="20dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginBottom="10dp">
+        
+        <!-- current duration lable -->
+        <TextView
+            android:id="@+id/songCurrentDurationLabel"
+            android:layout_width="fill_parent" 
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="#eeeeee"
+            android:gravity="left"
+            android:textStyle="bold"
+        />
+        <!-- Total duration lable -->
+        <TextView
+            android:id="@+id/songTotalDurationLabel"
+            android:layout_width="fill_parent" 
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="#eeeeee"
+            android:gravity="right"
+            android:textStyle="bold"
+        />
+    </LinearLayout>
+    
+    <!-- Shuffle Button -->
+    <LinearLayout
+        android:id="@+id/shufflePanel"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/timerDisplay"
+        android:gravity="center">
+        <ImageButton android:id="@+id/btnShuffle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/bn_shuffle"
+            android:background="@null"
+            android:contentDescription="@string/skyfall"/>
+    </LinearLayout>
+</RelativeLayout>
