@@ -14,11 +14,16 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.provider.MediaStore;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.View;
 import android.view.Window;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.widget.ImageButton;
@@ -56,8 +61,14 @@ public class MainActivity extends Activity implements OnCompletionListener,
 	//!private ArrayList<HashMap<String, String>> songsList = new ArrayList<HashMap<String, String>>();
 	private ArrayList songsList = new ArrayList();
 	private SongInfo sInfo=new SongInfo();
+	
+	private MusicIntentReceiver myReceiver;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		
+		//headset
+		myReceiver = new MusicIntentReceiver();
+		
 		//Remove title bar
 		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 		
@@ -223,7 +234,10 @@ public class MainActivity extends Activity implements OnCompletionListener,
 		coverAlbum.setImageBitmap(song.getBitmap());
 		coverAlbum.setMinimumHeight(song.getBitmap().getHeight());
 		coverAlbum.setMinimumWidth(song.getBitmap().getWidth());
+        }else{
+        	coverAlbum.setImageResource(R.drawable.images);
         }
+        
 		songTitleLable.setText(song.getTitle());
 		// Changing Button Image to pause image
         btnPlay.setImageResource(R.drawable.btn_pause);
@@ -248,6 +262,7 @@ public class MainActivity extends Activity implements OnCompletionListener,
 		super.onActivityResult(requestCode, resultCode, data);
 		if (resultCode == 100) {
 			currentSongIndex = data.getExtras().getInt("songIndex");
+			songsList = sInfo.getSongs(getContentResolver());
 			// play selected song
 			playSong(currentSongIndex);
 		}
@@ -275,6 +290,25 @@ public class MainActivity extends Activity implements OnCompletionListener,
 			//update progress bar
 			int progress=(int)utils.getProgressPercentage(currentDuration, totalDuration);
 			songProgressBar.setProgress(progress);
+			
+			
+			
+			/* for headeset
+			AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+			boolean headsetEnabled = am.isWiredHeadsetOn();
+			if(!headsetEnabled){
+				if(playingCurrently){
+					mp.pause();
+					playingCurrently=false;
+					btnPlay.setImageResource(R.drawable.btn_play);
+					}
+				}else{
+				if(!playingCurrently){
+						playingCurrently=true;
+						mp.start();
+						btnPlay.setImageResource(R.drawable.btn_pause);
+					}
+			}*/
 			
 			//run this thread repeatedly
 			myhandle.postDelayed(this, 100);
@@ -320,5 +354,76 @@ public class MainActivity extends Activity implements OnCompletionListener,
 		// TODO Auto-generated method stub
 
 	}
+	
+	public boolean onKeyDown (int keyCode, KeyEvent event){
+		//this method is used for handling the Headeset events
+			if( keyCode== KeyEvent. KEYCODE_HEADSETHOOK){
+			if(playingCurrently){
+				pauseSetup();
+				return true;
+				}else{
+					playSetup();
+					return true;
+				}
+			}
+		return false;
+	}
+	
+	
+	
+	private class MusicIntentReceiver extends BroadcastReceiver {
+	    @Override public void onReceive(Context context, Intent intent) {
+	        if (intent.getAction().equals(Intent.ACTION_HEADSET_PLUG)) {
+	            int state = intent.getIntExtra("state", -1);
+	            switch (state) {
+	            case 0:
+	                //Log.d(TAG, "Headset is unplugged");
+	            	mp.pause();
+					playingCurrently=false;
+					btnPlay.setImageResource(R.drawable.btn_play);
+	                break;
+	            case 1:
+	                //Log.d(TAG, "Headset is plugged");
+	            	mp.start();
+					btnPlay.setImageResource(R.drawable.btn_pause);
+	                break;
+	            }
+	        }
+	    }
+	}
+	
+	/*private boolean headsetConnected = false;
+
+	 public void onReceive(Context context, Intent intent) {
+	  if (intent.hasExtra("state")){
+	   if (headsetConnected && intent.getIntExtra("state", 0) == 0){
+	    headsetConnected = false;
+	    
+	   }
+	   else if (!headsetConnected && intent.getIntExtra("state", 0) == 1){
+	    headsetConnected = true;
+	   }
+
+	} }*/
+	public void playSetup(){
+		mp.start();
+	    playingCurrently=true;
+		btnPlay.setImageResource(R.drawable.btn_pause);
+	}
+	public void pauseSetup(){
+		mp.pause();
+		playingCurrently=false;
+		btnPlay.setImageResource(R.drawable.btn_play);
+	}	
+	@Override public void onResume() {
+	    IntentFilter filter = new IntentFilter(Intent.ACTION_HEADSET_PLUG);
+	    registerReceiver(myReceiver, filter);
+	    super.onResume();
+	}
+	@Override public void onPause() {
+	    unregisterReceiver(myReceiver);
+	    super.onPause();
+	}
 
 }
+

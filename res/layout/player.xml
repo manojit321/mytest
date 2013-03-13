@@ -43,21 +43,6 @@
     </LinearLayout>
     
     <!-- Song Thubnail image -->
-    <LinearLayout
-        android:id="@+id/songThumbnail"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:paddingTop="10dp"
-        android:paddingBottom="10dp"
-        android:gravity="center"
-        android:layout_below="@id/player_header_bg">
-    	<ImageView
-    	android:id="@+id/albumArt" 
-    	android:layout_width="160dp"
-        android:layout_height="160dp"
-        android:src="@drawable/images"
-        android:contentDescription="@string/skyfall"/>
-    </LinearLayout>
     
     <!-- Player Footer -->
 
@@ -148,17 +133,42 @@
     </LinearLayout>
     
     <!-- Shuffle Button -->
+
     <LinearLayout
         android:id="@+id/shufflePanel"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_above="@id/timerDisplay"
-        android:gravity="center">
-        <ImageButton android:id="@+id/btnShuffle"
+        android:layout_above="@+id/songProgressBar"
+        android:layout_alignParentLeft="true"
+        android:gravity="center" >
+
+        <ImageButton
+            android:id="@+id/btnShuffle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/bn_shuffle"
             android:background="@null"
-            android:contentDescription="@string/skyfall"/>
+            android:contentDescription="@string/skyfall"
+            android:src="@drawable/bn_shuffle" />
+
     </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/songThumbnail"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/shufflePanel"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/player_header_bg"
+        android:gravity="center"
+        android:paddingBottom="10dp"
+        android:paddingTop="10dp" >
+
+        <ImageView
+            android:id="@+id/albumArt"
+            android:layout_width="match_parent"
+            android:layout_height="199dp"
+            android:contentDescription="@string/skyfall"
+            android:src="@drawable/images" />
+    </LinearLayout>
+
 </RelativeLayout>

@@ -1,24 +1,23 @@
 package com.manoj.helper;
 
-import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.R.string;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.MediaStore;
 
 public class SongInfo {
-	public ArrayList getSongs(ContentResolver contentResolver)
+	@SuppressWarnings("finally")
+	public ArrayList<Song> getSongs(ContentResolver contentResolver)
 	{
+		ArrayList<Song> songList=new ArrayList<Song>();
+		Cursor cursor=null;
+		try{
 	    List<Integer> result = new ArrayList<Integer>();
-	    ArrayList songList=new ArrayList();
-	    Cursor cursor = contentResolver.query(MediaStore.Audio.Media.getContentUri("external"), new String[]{MediaStore.Audio.Media.ALBUM_ID,MediaStore.Audio.Media.TITLE,MediaStore.Audio.Media.ARTIST,MediaStore.Audio.Media.TRACK,MediaStore.Audio.Media.ALBUM,MediaStore.Audio.Media.COMPOSER,MediaStore.Audio.Media.DATA}, null, null, null);
+	    cursor = contentResolver.query(MediaStore.Audio.Media.getContentUri("external"), new String[]{MediaStore.Audio.Media.ALBUM_ID,MediaStore.Audio.Media.TITLE,MediaStore.Audio.Media.ARTIST,MediaStore.Audio.Media.TRACK,MediaStore.Audio.Media.ALBUM,MediaStore.Audio.Media.COMPOSER,MediaStore.Audio.Media.DATA}, null, null, null);
 
 	    if (cursor!=null && cursor.moveToFirst())
 	    {
@@ -43,6 +42,12 @@ public class SongInfo {
 	            }
 	        } while (cursor.moveToNext());
 	    }
-	    return songList;
+		}catch (Exception e) {
+			e.printStackTrace();
+		}finally{
+			if(cursor!=null)
+			cursor.close();
+			return songList;
+		}
 	}
 }
