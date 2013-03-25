@@ -4,33 +4,31 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 
-import com.manoj.helper.Song;
-import com.manoj.helper.SongInfo;
-import com.manoj.helper.Utilities;
-
-import android.os.Bundle;
-import android.os.Handler;
-import android.provider.MediaStore;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
+import android.media.MediaPlayer;
+import android.media.MediaPlayer.OnCompletionListener;
+import android.os.Bundle;
+import android.os.Handler;
+import android.provider.MediaStore;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.View;
 import android.view.Window;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
-import android.media.MediaPlayer.OnCompletionListener;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.manoj.helper.Song;
+import com.manoj.helper.SongInfo;
+import com.manoj.helper.Utilities;
 
 public class MainActivity extends Activity implements OnCompletionListener,
 		SeekBar.OnSeekBarChangeListener {
@@ -41,6 +39,7 @@ public class MainActivity extends Activity implements OnCompletionListener,
 	private ImageButton btnPrevious;
 	private ImageButton btnShuffle;
 	private ImageButton btnPlaylist;
+	private ImageButton btnRepeat;
 	private SeekBar songProgressBar;
 	private TextView songCurrentDurationLabel;
 	private TextView songTotalDurationLabel;
@@ -58,7 +57,6 @@ public class MainActivity extends Activity implements OnCompletionListener,
 	private boolean isShuffle = false;
 	private boolean isRepeat = false;
 	private boolean playingCurrently= false;
-	//!private ArrayList<HashMap<String, String>> songsList = new ArrayList<HashMap<String, String>>();
 	private ArrayList songsList = new ArrayList();
 	private SongInfo sInfo=new SongInfo();
 	
@@ -80,6 +78,7 @@ public class MainActivity extends Activity implements OnCompletionListener,
 		btnNext = (ImageButton) findViewById(R.id.btnNext);
 		btnPrevious = (ImageButton) findViewById(R.id.btnPrevious);
 		btnPlaylist = (ImageButton) findViewById(R.id.btnPlaylist);
+		btnRepeat = (ImageButton) findViewById(R.id.btnRepeat);
 		btnShuffle = (ImageButton) findViewById(R.id.btnShuffle);
 		coverAlbum=(ImageView) findViewById(R.id.albumArt);
 		songCurrentDurationLabel = (TextView) findViewById(R.id.songCurrentDurationLabel);
@@ -106,11 +105,13 @@ public class MainActivity extends Activity implements OnCompletionListener,
             @Override
             public void onCompletion(MediaPlayer arg0) 
             {
-            	if(currentSongIndex<songsList.size()-1){
-        			currentSongIndex++;
-        		}else{
-        			currentSongIndex=0;
-        		}
+            	if(!isRepeat){
+            		if(currentSongIndex<songsList.size()-1){
+            			currentSongIndex++;
+            		}else{
+            			currentSongIndex=0;
+            		}            		
+            	}
         		playSong(currentSongIndex);	
             }
     	});
@@ -131,7 +132,23 @@ public class MainActivity extends Activity implements OnCompletionListener,
 		});
 		
 		
+		//when repeat is clicked
+		btnRepeat.setOnClickListener(new View.OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				// repeat the curent song
+				if(!isRepeat){
+					isRepeat=true;
+					btnRepeat.setImageResource(R.drawable.btn_repeatfocussed);
+				}else{
+					isRepeat=false;
+					btnRepeat.setImageResource(R.drawable.btn_repeat);
+				}
+				
+			}
 		
+		});
 		//play button
 		btnPlay.setOnClickListener(new View.OnClickListener(){
 			@Override
@@ -207,15 +224,10 @@ public class MainActivity extends Activity implements OnCompletionListener,
 	public void playSong(int index){
 		try{
 		mp.reset();
-		//!mp.setDataSource(songsList.get(index).get("songPath"));
 		Song song=(Song)songsList.get(index);
 		mp.setDataSource(song.getUrl());
-//		mp.setDataSource(song.getTitle()); 
 		mp.prepare();
 		mp.start();
-		//display title
-		//!String title=songsList.get(index).get("songTitle");
-		//!songTitleLable.setText(title);
 		Bitmap bitmap = null;
         try {
             bitmap = MediaStore.Images.Media.getBitmap(
@@ -290,26 +302,6 @@ public class MainActivity extends Activity implements OnCompletionListener,
 			//update progress bar
 			int progress=(int)utils.getProgressPercentage(currentDuration, totalDuration);
 			songProgressBar.setProgress(progress);
-			
-			
-			
-			/* for headeset
-			AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-			boolean headsetEnabled = am.isWiredHeadsetOn();
-			if(!headsetEnabled){
-				if(playingCurrently){
-					mp.pause();
-					playingCurrently=false;
-					btnPlay.setImageResource(R.drawable.btn_play);
-					}
-				}else{
-				if(!playingCurrently){
-						playingCurrently=true;
-						mp.start();
-						btnPlay.setImageResource(R.drawable.btn_pause);
-					}
-			}*/
-			
 			//run this thread repeatedly
 			myhandle.postDelayed(this, 100);
 		}
@@ -392,19 +384,6 @@ public class MainActivity extends Activity implements OnCompletionListener,
 	    }
 	}
 	
-	/*private boolean headsetConnected = false;
-
-	 public void onReceive(Context context, Intent intent) {
-	  if (intent.hasExtra("state")){
-	   if (headsetConnected && intent.getIntExtra("state", 0) == 0){
-	    headsetConnected = false;
-	    
-	   }
-	   else if (!headsetConnected && intent.getIntExtra("state", 0) == 1){
-	    headsetConnected = true;
-	   }
-
-	} }*/
 	public void playSetup(){
 		mp.start();
 	    playingCurrently=true;
@@ -426,4 +405,3 @@ public class MainActivity extends Activity implements OnCompletionListener,
 	}
 
 }
-

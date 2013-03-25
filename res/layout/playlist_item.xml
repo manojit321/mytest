@@ -4,7 +4,6 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@drawable/list_selector"
-    android:gravity="center"
     >
 <TextView android:id="@+id/songTitle"
     android:layout_width="wrap_content"
@@ -12,6 +11,7 @@
     android:textSize="20sp"
     android:textStyle="normal"
     android:padding="10dp"
-    android:textColor="#04b3d2"
+    android:textColor="#ffffff"
+    android:text="@string/no_songs"
     />    
 </LinearLayout>

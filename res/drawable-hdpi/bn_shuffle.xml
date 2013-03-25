@@ -10,7 +10,7 @@
     <item android:drawable="@drawable/shufflebuttonfocus"
         android:state_focused="true"
      />
-    <item android:drawable="@drawable/shufflebuttonfocus"
+    <item android:drawable="@drawable/shufflebutton"
         android:state_focused="false"
         android:state_pressed="false"         
      />
