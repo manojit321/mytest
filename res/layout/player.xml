@@ -3,6 +3,7 @@
     android:layout_width="wrap_content"
     android:layout_height="match_parent"
     android:background="#0099CC"
+    android:id="@+id/homeScreen"
     >
     <!-- android:background="@color/player_background"--> 
      
@@ -14,6 +15,16 @@
         android:layout_alignParentTop="true"
         android:paddingLeft="5dp"
         android:paddingRight="5dp">
+        
+        <!-- Song Tilte -->
+        <ImageButton 
+        android:id="@+id/btnSettings"
+        android:layout_width="wrap_content"    
+        android:layout_height="fill_parent"
+        android:src="@drawable/btn_playlist"
+        android:background="@null"
+        android:contentDescription="@string/skyfall"/>
+        
         <!-- Song Tilte -->
         <TextView
             android:id="@+id/songTitle"
