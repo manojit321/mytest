@@ -6,15 +6,19 @@ import java.util.HashMap;
 import com.manoj.helper.FileHandlers;
 import com.manoj.helper.Song;
 import com.manoj.helper.SongInfo;
+import com.manoj.helper.Utilities;
 
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
@@ -25,26 +29,32 @@ public class ThemeList extends ListActivity {
 	//song list
 	ArrayList songsList1=new ArrayList();
 	ArrayList colorList=new ArrayList();
+	private LinearLayout homeScreen; 
+	private Utilities utilities;
 	@Override
 	public void onCreate(Bundle savedInstanceState){
 		try{
+			utilities = new Utilities();
 			//Remove title bar
 			this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 			super.onCreate(savedInstanceState);
 			setContentView(R.layout.playlist);
+			homeScreen = (LinearLayout)findViewById(R.id.playlist_layout);
+			utilities.colorSeter(homeScreen, getApplicationContext());
 			ArrayList<HashMap<String, String>> colorListData = new ArrayList<HashMap<String, String>>();
 			SongManager songManager=new SongManager();
 			SongInfo si=new SongInfo();
 			
 			if(this.colorList!=null && this.colorList.isEmpty()){
-			 this.colorList.add("#008EBE");
-			 this.colorList.add("#9833CB");
+			 this.colorList.add("theme_black");
+			 this.colorList.add("theme_pink");
+			 this.colorList.add("theme_skyblue");
 			 this.colorList.add("#669800");
 			 this.colorList.add("#FF8800");
 			 this.colorList.add("#CB0000");
 			}
 			
-				for (int i = 0; i < colorList.size(); i++) {
+				for (int i = 0; i < colorList.size(); i++) { 
 		            // creating new HashMap
 		            
 		            HashMap<String, String> tempColorListData=new HashMap<String, String>();
@@ -83,5 +93,4 @@ public class ThemeList extends ListActivity {
 		e.printStackTrace();
 	}
 	}
-
 }

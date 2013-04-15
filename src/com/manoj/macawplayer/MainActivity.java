@@ -1,9 +1,13 @@
 package com.manoj.macawplayer;
 
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Properties;
+import java.util.PropertyResourceBundle;
 
 import android.R.color;
 import android.app.Activity;
@@ -11,9 +15,18 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.AssetManager;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.LinearGradient;
+import android.graphics.Shader;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.PaintDrawable;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.RectShape;
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.os.Bundle;
@@ -21,12 +34,14 @@ import android.os.Handler;
 import android.provider.MediaStore;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.View;
 import android.view.Window;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -36,10 +51,15 @@ import com.manoj.helper.FileHandlers;
 import com.manoj.helper.Song;
 import com.manoj.helper.SongInfo;
 import com.manoj.helper.Utilities;
+import com.manoj.listeners.ActivitySwipeDetector;
+import com.manoj.listeners.ShakeEventListener;
+import com.manoj.listeners.SwipeInterface;
 
 public class MainActivity extends Activity implements OnCompletionListener,
-		SeekBar.OnSeekBarChangeListener {
-
+		SeekBar.OnSeekBarChangeListener,SwipeInterface {
+	
+	private SensorManager mSensorManager;
+	private ShakeEventListener mSensorListener;
 	private ImageButton btnPlay;
 	private ImageButton btnPause;
 	private ImageButton btnNext;
@@ -79,19 +99,53 @@ public class MainActivity extends Activity implements OnCompletionListener,
 		
 		try
 		{
+			//Remove title bar
+			this.requestWindowFeature(Window.FEATURE_NO_TITLE);
+			super.onCreate(savedInstanceState);
+			setContentView(R.layout.player);
+			
+			//swipe listeners
+			ActivitySwipeDetector swipe = new ActivitySwipeDetector(this);
+			RelativeLayout swipe_layout = (RelativeLayout) findViewById(R.id.homeScreen);
+			swipe_layout.setOnTouchListener(swipe);
+			
+			
+			
+			
+			//shake listener
+			mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+		    mSensorListener = new ShakeEventListener();   
+
+		    mSensorListener.setOnShakeListener(new ShakeEventListener.OnShakeListener() {
+
+		      public void onShake(float changeSong) {
+		        Toast.makeText(MainActivity.this, "Shake!"+changeSong, Toast.LENGTH_SHORT).show();
+		        if(changeSong==1){
+		        	previousSetup();
+		        }else{
+		        	nextSetup();
+		        }
+		      }
+		    });
+			
+			
+			
 			//headset
 			myReceiver = new MusicIntentReceiver();
+			IntentFilter filter = new IntentFilter(Intent.ACTION_HEADSET_PLUG);
+			filter.setPriority(1000);
+			registerReceiver(myReceiver, filter);
+			IntentFilter remoteControlRecieverFilter = new IntentFilter(Intent.ACTION_MEDIA_BUTTON);
+			remoteControlRecieverFilter.setPriority(1000); 
+		    registerReceiver(remoteControlReceiver, remoteControlRecieverFilter);
 			fileHandlers = new FileHandlers();
-			remoteControlReceiver= new RemoteControlReceiver();
+			//1remoteControlReceiver= new RemoteControlReceiver();
 			telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
 			if(telephonyManager != null) {
 		    	telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
 		    }
-			//Remove title bar
-			this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 			
-			super.onCreate(savedInstanceState);
-			setContentView(R.layout.player);
+			
 	
 			// refer all the button variables to actual images
 			btnPlay = (ImageButton) findViewById(R.id.btnPlay);
@@ -129,9 +183,41 @@ public class MainActivity extends Activity implements OnCompletionListener,
 			    playSong(currentSongIndex);
 			  }
 			
-			
+			Resources resources = getResources();
+	    	try {
+	    	    InputStream rawResource = resources.openRawResource(R.raw.my_config);
+	    	    Properties properties = new Properties();
+	    	    properties.load(rawResource);
+	    	    System.out.println("The properties are now loaded");
+	    	    Log.i("main activity","The properties are now loaded");
+	    	    System.out.println("properties: " + properties);
+	    	    String k=properties.getProperty("#008EBE");
+	    	    System.out.println("properties: " + properties);
+	    	} catch (IOException e) {
+	    	    System.err.println("Failed to open microlog property file");
+	    	    e.printStackTrace();
+	    	}
 			//set the background for app
-			homeScreen.setBackgroundColor(Color.parseColor(fileHandlers.findKeyValue("temp.txt", getApplicationContext(), "backgroundColor")));
+			//homeScreen.setBackgroundColor(Color.parseColor(fileHandlers.findKeyValue("temp.txt", getApplicationContext(), "backgroundColor")));
+			/*String colr=fileHandlers.findKeyValue("temp.txt", getApplicationContext(), "backgroundColor");
+			
+			ShapeDrawable.ShaderFactory sf = new ShapeDrawable.ShaderFactory() {
+			    @Override
+			    public Shader resize(int width, int height) {
+			    	//RadialGradient lg = new RadialGradient(0, 0,275,Color.parseColor("#0099CC"),Color.parseColor("#0000CC"),
+			    	LinearGradient lg = new LinearGradient(0, 0, 0, homeScreen.getHeight(),new int[] {Color.parseColor("#0099CC"),Color.parseColor("#33B5E5"),Color.parseColor("#6DCAEC"),Color.parseColor("#0099CC")},null,
+			            Shader.TileMode.REPEAT);
+			         return lg;
+			    }
+			};			
+			PaintDrawable p = new PaintDrawable();
+			p.setShape(new RectShape());
+			p.setShaderFactory(sf);
+			homeScreen.setBackgroundDrawable((Drawable)p);*/
+			utils.colorSeter(homeScreen, getApplicationContext());
+			
+			
+			
 			
 			mp.setOnCompletionListener(new OnCompletionListener() {
 	            @Override
@@ -155,7 +241,7 @@ public class MainActivity extends Activity implements OnCompletionListener,
 				@Override
 				public void onClick(View v) {
 					Intent i = new Intent(getApplicationContext(),
-							PlayListActivity.class);
+							ThemeList.class);
 					
 					//i.putParcelableArrayListExtra("songList",songsList );
 					startActivityForResult(i, 100);
@@ -169,7 +255,7 @@ public class MainActivity extends Activity implements OnCompletionListener,
 				@Override
 				public void onClick(View v) {
 					Intent i = new Intent(getApplicationContext(),
-							ThemeList.class);
+							SwipeActivity.class);
 					startActivityForResult(i, 101);
 				}
 	
@@ -265,6 +351,7 @@ public class MainActivity extends Activity implements OnCompletionListener,
 		}
 	}
 	
+	
 	protected void onSaveInstanceState(Bundle bundle) {
 		  super.onSaveInstanceState(bundle);
 		  bundle.putInt("currentSongIndex", currentSongIndex);
@@ -303,7 +390,7 @@ public class MainActivity extends Activity implements OnCompletionListener,
         	coverAlbum.setImageResource(R.drawable.images);
         }
         
-		songTitleLable.setText(song.getTitle());
+		songTitleLable.setText(song.getTitle()+" "+currentSongIndex);
 		// Changing Button Image to pause image
         btnPlay.setImageResource(R.drawable.btn_pause);
         playingCurrently=true;
@@ -333,8 +420,34 @@ public class MainActivity extends Activity implements OnCompletionListener,
 		}
 
 		if(resultCode == 101){
-			if(data.getExtras().getInt("temp")==1)
-			homeScreen.setBackgroundColor(Color.parseColor(fileHandlers.findKeyValue("temp.txt", getApplicationContext(), "backgroundColor")));
+			if(data.getExtras().getInt("temp")==1){
+				utils.colorSeter(homeScreen, getApplicationContext());
+			}
+		}
+		
+		if (resultCode == 200) {
+			Toast.makeText(MainActivity.this, "Shake!"+data.getExtras().getString("album"), Toast.LENGTH_SHORT).show();
+			if(data.getExtras().getString("album")!=null){
+			songsList = sInfo.getAlbumSongs(getContentResolver(), data.getExtras().getString("album"));
+			currentSongIndex=0;
+			// play selected song
+			playSong(currentSongIndex);
+			}
+		}
+		if (resultCode == 201) {
+			Toast.makeText(MainActivity.this, "Shake!"+data.getExtras().getString("artist"), Toast.LENGTH_SHORT).show();
+			if(data.getExtras().getString("artist")!=null){
+			songsList = sInfo.getArtistSongs(getContentResolver(), data.getExtras().getString("artist"));
+			currentSongIndex=0;
+			// play selected song
+			playSong(currentSongIndex);
+			}
+		}
+		if (resultCode == 202) {
+			currentSongIndex = data.getExtras().getInt("songIndex");
+			songsList = sInfo.getSongs(getContentResolver());
+			// play selected song
+			playSong(currentSongIndex);
 		}
 	}
 	
@@ -443,15 +556,11 @@ public class MainActivity extends Activity implements OnCompletionListener,
 	                //Log.d(TAG, "Headset is unplugged");
 	            	mp.pause();
 					playingCurrently=false;
-				    unregisterReceiver(remoteControlReceiver);
 					btnPlay.setImageResource(R.drawable.btn_play);
 	                break;
 	            case 1:
 	                //Log.d(TAG, "Headset is plugged");
 	            	mp.start();
-	            	IntentFilter filter = new IntentFilter(Intent.ACTION_MEDIA_BUTTON);
-	                filter.setPriority(1000); 
-				    registerReceiver(remoteControlReceiver, filter);
 					btnPlay.setImageResource(R.drawable.btn_pause);
 	                break;
 	            }
@@ -514,16 +623,18 @@ public class MainActivity extends Activity implements OnCompletionListener,
 		}
 	}
 	@Override public void onResume() {
-	    IntentFilter filter = new IntentFilter(Intent.ACTION_HEADSET_PLUG);
-	    filter.setPriority(1000);
-	    registerReceiver(myReceiver, filter);
 	    super.onResume();
+	    mSensorManager.registerListener(mSensorListener,
+	            mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+	            SensorManager.SENSOR_DELAY_UI);
 	}
 	@Override public void onPause() {
-	    unregisterReceiver(myReceiver);
+	    //unregisterReceiver(myReceiver);
+	    mSensorManager.unregisterListener(mSensorListener);
 	    super.onPause();
 	}
 	
+	@Override
 	public boolean onKeyDown (int keyCode, KeyEvent event){
 		//this method is used for handling the Headeset events
 			if( keyCode== KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE||keyCode== KeyEvent.KEYCODE_MEDIA_PLAY||keyCode== KeyEvent.KEYCODE_MEDIA_PAUSE||keyCode== KeyEvent.KEYCODE_MEDIA_STOP){
@@ -536,6 +647,42 @@ public class MainActivity extends Activity implements OnCompletionListener,
 				}
 			}
 		return false;
+	}
+
+
+	@Override
+	public void bottom2top(View v) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public void left2right(View v) {
+		// TODO Auto-generated method stub
+		Log.i("","LeftToRightSwipe!");
+		Intent i = new Intent(getApplicationContext(),
+				PlayListActivity.class);
+		
+		//i.putParcelableArrayListExtra("songList",songsList );
+		startActivityForResult(i, 100);
+	}
+
+
+	@Override
+	public void right2left(View v) {
+		// TODO Auto-generated method stub
+		Log.i("","right2left!");
+		Intent i = new Intent(getApplicationContext(),
+				ThemeList.class);
+		startActivityForResult(i, 101);
+	}
+
+
+	@Override
+	public void top2bottom(View v) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

@@ -7,6 +7,8 @@
         android:minSdkVersion="9"
         android:targetSdkVersion="17" />
 	<uses-permission android:name="android.permission.READ_PHONE_STATE" />
+	<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+	<uses-permission android:name="android.permission.WRITE_SETTINGS"></uses-permission>
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
@@ -37,7 +39,12 @@
             android:name=".PlayListActivity">
          </activity>
          <activity
+              android:screenOrientation="nosensor"
             android:name=".ThemeList">
+         </activity>
+         <activity
+             android:screenOrientation="nosensor"
+            android:name=".SwipeActivity">
          </activity>
     </application>
 </manifest>

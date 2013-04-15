@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/homeScreen"
     android:layout_width="wrap_content"
     android:layout_height="match_parent"
-    android:background="#0099CC"
-    android:id="@+id/homeScreen"
+    android:background="@drawable/theme_pink"
     >
+
     <!-- android:background="@color/player_background"--> 
      
     <!-- Player Header -->
