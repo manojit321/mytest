@@ -6,22 +6,28 @@ import java.util.List;
 import java.util.Vector;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TabHost;
 import android.widget.TabHost.TabContentFactory;
 
 import com.manoj.adapters.PagerAdapter;
+import com.manoj.customview.helper.ImageCache;
+import com.manoj.customview.helper.ImageFetcher;
 import com.manoj.fragments.AlbumFragment;
 import com.manoj.fragments.ArtistFragment;
+import com.manoj.fragments.SongCustomFragment;
 import com.manoj.fragments.SongFragment;
 import com.manoj.helper.FileHandlers;
 import com.manoj.helper.Utilities;
@@ -34,11 +40,15 @@ import com.manoj.macawplayer.SwipeActivity.TabFactory;
 public class SwipeActivity extends FragmentActivity implements TabHost.OnTabChangeListener, ViewPager.OnPageChangeListener {
  
     private TabHost mTabHost;
+    private ImageFetcher mImageFetcher;
+    private static final String IMAGE_CACHE_DIR = "images";
+    public static final String EXTRA_IMAGE = "extra_image";
     private ViewPager mViewPager;
     private LinkedHashMap<String, TabInfo> mapTabInfo = new LinkedHashMap<String, SwipeActivity.TabInfo>();
     private PagerAdapter mPagerAdapter;
-    private LinearLayout homeScreen;
+    private FrameLayout homeScreen;
     private Utilities utilities;
+    private int currentSongIndex;
     /**
      *
      * @author mwho
@@ -91,10 +101,32 @@ public class SwipeActivity extends FragmentActivity implements TabHost.OnTabChan
         super.onCreate(savedInstanceState);
         // Inflate the layout
         setContentView(R.layout.tabs_viewpager_layout);
-        homeScreen=(LinearLayout)findViewById(R.id.tablayout);
-        //homeScreen.setBackgroundColor(Color.parseColor(new FileHandlers().findKeyValue("temp.txt", getApplicationContext(), "backgroundColor")));
-        //utilities.colorSeter(homeScreen, getApplicationContext());
+        homeScreen=(FrameLayout)findViewById(android.R.id.tabcontent);
+        utilities.colorSeter(homeScreen, getApplicationContext());
+        currentSongIndex = getIntent().getExtras().getInt("songPlaying");
+     // Fetch screen height and width, to use as our max size when loading images as this
+        // activity runs full screen
+        final DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        final int height = displayMetrics.heightPixels;
+        final int width = displayMetrics.widthPixels;
+
+        // For this sample we'll use half of the longest width to resize our images. As the
+        // image scaling ensures the image is larger than this, we should be left with a
+        // resolution that is appropriate for both portrait and landscape. For best image quality
+        // we shouldn't divide by 2, but this will use more memory and require a larger memory
+        // cache.
+        final int longest = (height > width ? height : width) / 2;
+
         
+        
+        
+        ImageCache.ImageCacheParams cacheParams =
+                new ImageCache.ImageCacheParams(this, IMAGE_CACHE_DIR);
+        cacheParams.setMemCacheSizePercent(0.25f); // Set memory cache to 25% of app memory
+
+
+
         // Initialise the TabHost
         this.initialiseTabHost(savedInstanceState);
         if (savedInstanceState != null) {
@@ -120,12 +152,16 @@ public class SwipeActivity extends FragmentActivity implements TabHost.OnTabChan
         List<Fragment> fragments = new Vector<Fragment>();
         fragments.add(Fragment.instantiate(this, AlbumFragment.class.getName()));
         fragments.add(Fragment.instantiate(this, ArtistFragment.class.getName()));
-        fragments.add(Fragment.instantiate(this, SongFragment.class.getName()));
+        //fragments.add(Fragment.instantiate(this, SongFragment.class.getName()));
+        fragments.add(Fragment.instantiate(this, SongCustomFragment.class.getName()));
         this.mPagerAdapter  = new PagerAdapter(super.getSupportFragmentManager(), fragments);
         //
         this.mViewPager = (ViewPager)super.findViewById(R.id.viewpager);
         this.mViewPager.setAdapter(this.mPagerAdapter);
         this.mViewPager.setOnPageChangeListener(this);
+        // Default to first tab
+        this.onPageSelected(2);
+        this.onTabChanged("Tab4");
     }
  
     /**
@@ -139,10 +175,12 @@ public class SwipeActivity extends FragmentActivity implements TabHost.OnTabChan
         this.mapTabInfo.put(tabInfo.tag, tabInfo);
         SwipeActivity.AddTab(this, this.mTabHost, this.mTabHost.newTabSpec("Tab2").setIndicator("Artist"), ( tabInfo = new TabInfo("Tab2", ArtistFragment.class, args)));
         this.mapTabInfo.put(tabInfo.tag, tabInfo);
-        SwipeActivity.AddTab(this, this.mTabHost, this.mTabHost.newTabSpec("Tab3").setIndicator("Songs"), ( tabInfo = new TabInfo("Tab3", SongFragment.class, args)));
+        /*SwipeActivity.AddTab(this, this.mTabHost, this.mTabHost.newTabSpec("Tab3").setIndicator("Songs"), ( tabInfo = new TabInfo("Tab3", SongFragment.class, args)));
+        this.mapTabInfo.put(tabInfo.tag, tabInfo);*/
+        SwipeActivity.AddTab(this, this.mTabHost, this.mTabHost.newTabSpec("Tab4").setIndicator("SongsLayout"), ( tabInfo = new TabInfo("Tab4", SongCustomFragment.class, args)));
         this.mapTabInfo.put(tabInfo.tag, tabInfo);
         // Default to first tab
-        //this.onTabChanged("Tab1");
+        //this.onTabChanged("Tab4");
         //
         mTabHost.setOnTabChangedListener(this);
     }
@@ -190,7 +228,13 @@ public class SwipeActivity extends FragmentActivity implements TabHost.OnTabChan
     	Log.i("", "onPageSelected   current pos :"+position);
         this.mTabHost.setCurrentTab(position);
     }
- 
+    /**
+     * Called by the ViewPager child fragments to load images via the one ImageFetcher
+     */
+    public ImageFetcher getImageFetcher() {
+        return mImageFetcher;
+    }
+
     /* (non-Javadoc)
      * @see android.support.v4.view.ViewPager.OnPageChangeListener#onPageScrollStateChanged(int)
      */
@@ -199,4 +243,6 @@ public class SwipeActivity extends FragmentActivity implements TabHost.OnTabChan
         // TODO Auto-generated method stub
  
     }
+    
+    
 }

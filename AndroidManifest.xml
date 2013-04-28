@@ -6,9 +6,18 @@
     <uses-sdk
         android:minSdkVersion="9"
         android:targetSdkVersion="17" />
+    
+    
+    <!-- this is used to  identify the activity are accessed only by ur app dont give this for ur main activity-->
+    <permission
+    android:protectionLevel="signature"
+    android:name="com.manoj.MYPERMISSION"/>
+    
 	<uses-permission android:name="android.permission.READ_PHONE_STATE" />
 	<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 	<uses-permission android:name="android.permission.WRITE_SETTINGS"></uses-permission>
+	<uses-permission android:name="com.manoj.MYPERMISSION" />	
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
@@ -24,11 +33,12 @@
 	        <action android:name="android.intent.action.MEDIA_BUTTON" />
 	    </intent-filter>
 	</receiver>
-        <activity android:launchMode="singleTask"
+        <activity 
             android:name="com.manoj.macawplayer.MainActivity"
             android:label="@string/app_name" 
             android:screenOrientation="nosensor"
-            android:configChanges="keyboardHidden|orientation|screenSize">
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -44,7 +54,13 @@
          </activity>
          <activity
              android:screenOrientation="nosensor"
-            android:name=".SwipeActivity">
+             android:name=".SwipeActivity"
+             android:windowSoftInputMode="stateHidden"
+             android:permission="com.manoj.MYPERMISSION" 
+             >
+         </activity>
+         <activity
+            android:name=".CustomizedListView">
          </activity>
     </application>
 </manifest>

@@ -13,6 +13,8 @@ public class Song {
    private String url="";
    Bitmap bitmap;
    private Uri albumArtUrl;
+   private String duration="";
+   private String title_key = "";
 public Bitmap getBitmap() {
 	return bitmap;
 }
@@ -66,6 +68,18 @@ public Uri getAlbumArtUrl() {
 }
 public void setAlbumArtUrl(Uri albumArtUrl) {
 	this.albumArtUrl = albumArtUrl;
+}
+public String getDuration() {
+	return duration;
+}
+public void setDuration(String duration) {
+	this.duration = duration;
+}
+public String getTitle_key() {
+	return title_key;
+}
+public void setTitle_key(String title_key) {
+	this.title_key = title_key;
 }
    
 }

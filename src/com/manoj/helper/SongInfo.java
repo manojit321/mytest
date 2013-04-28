@@ -2,6 +2,7 @@ package com.manoj.helper;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -12,7 +13,7 @@ import android.net.Uri;
 import android.provider.MediaStore;
 
 public class SongInfo {
-	String[] songToFetch = {MediaStore.Audio.Media.ALBUM_ID,MediaStore.Audio.Media.TITLE,MediaStore.Audio.Media.ARTIST,MediaStore.Audio.Media.TRACK,MediaStore.Audio.Media.ALBUM,MediaStore.Audio.Media.COMPOSER,MediaStore.Audio.Media.DATA};
+	String[] songToFetch = {MediaStore.Audio.Media.ALBUM_ID,MediaStore.Audio.Media.TITLE,MediaStore.Audio.Media.ARTIST,MediaStore.Audio.Media.TRACK,MediaStore.Audio.Media.ALBUM,MediaStore.Audio.Media.COMPOSER,MediaStore.Audio.Media.DATA,MediaStore.Audio.Media.DURATION,MediaStore.Audio.Media.IS_MUSIC,MediaStore.Audio.Media.TITLE_KEY};
 	@SuppressWarnings("finally")
 	public ArrayList<Song> getSongs(ContentResolver contentResolver)
 	{
@@ -24,6 +25,8 @@ public class SongInfo {
 	    if (cursor!=null && cursor.moveToFirst())
 	    {
 	        do{
+	        	if(cursor.getString(7)!=null && cursor.getString(8).equals("0"))
+	        		continue;
 	        	Song song=new Song();
 	        	int albumId=cursor.getInt(0);
 	            song.setAlbum_id(cursor.getInt(0));
@@ -33,7 +36,8 @@ public class SongInfo {
 	            song.setAlbum(cursor.getString(4));
 	            song.setComposer(cursor.getString(5));
 	            song.setUrl(cursor.getString(6));
-	            
+	            song.setDuration(cursor.getString(7));
+	            song.setTitle_key(cursor.getString(9));
 	            Uri sArtworkUri = Uri
                         .parse("content://media/external/audio/albumart");
                 Uri albumArtUri = ContentUris.withAppendedId(sArtworkUri, albumId);
@@ -174,4 +178,18 @@ public class SongInfo {
 		}
 	}
 
+	@SuppressWarnings("finally")
+	public int getSongBasedOnTitle_key(ArrayList songList,String title_key)
+	{
+		Iterator<Song> iterator = songList.iterator();
+		Song song = null;
+		int position = 0;
+		while(iterator.hasNext()){
+			song = iterator.next();
+			if(song.getTitle_key().equalsIgnoreCase(title_key))
+				return position;
+			position++;
+		}
+		return 1;
+	}
 }

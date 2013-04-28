@@ -1,30 +1,21 @@
+
 package com.manoj.macawplayer;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Properties;
-import java.util.PropertyResourceBundle;
 
-import android.R.color;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
-import android.graphics.Color;
-import android.graphics.LinearGradient;
-import android.graphics.Shader;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.PaintDrawable;
-import android.graphics.drawable.ShapeDrawable;
-import android.graphics.drawable.shapes.RectShape;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.media.MediaPlayer;
@@ -35,28 +26,30 @@ import android.provider.MediaStore;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
-import android.view.KeyEvent;
+import android.view.GestureDetector;
+import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.Menu;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ViewFlipper;
 
 import com.manoj.helper.FileHandlers;
 import com.manoj.helper.Song;
 import com.manoj.helper.SongInfo;
 import com.manoj.helper.Utilities;
-import com.manoj.listeners.ActivitySwipeDetector;
 import com.manoj.listeners.ShakeEventListener;
-import com.manoj.listeners.SwipeInterface;
 
 public class MainActivity extends Activity implements OnCompletionListener,
-		SeekBar.OnSeekBarChangeListener,SwipeInterface {
+		SeekBar.OnSeekBarChangeListener/*,SwipeInterface */{
 	
 	private SensorManager mSensorManager;
 	private ShakeEventListener mSensorListener;
@@ -73,6 +66,9 @@ public class MainActivity extends Activity implements OnCompletionListener,
 	private TextView songTotalDurationLabel;
 	private TextView songTitleLable;
 	private ImageView coverAlbum;
+	private ImageView coverAlbumPreviours;
+	private ImageView coverAlbumPlay;
+	private ImageView coverAlbumNext;
 	private MediaPlayer mp;
 	private RelativeLayout homeScreen;
 
@@ -88,11 +84,23 @@ public class MainActivity extends Activity implements OnCompletionListener,
 	private boolean playingCurrently= false;
 	private ArrayList songsList = new ArrayList();
 	private SongInfo sInfo=new SongInfo();
-	
+	ArrayList<HashMap> filteredSongMap = new ArrayList<HashMap>();
 	private MusicIntentReceiver myReceiver;
-	private RemoteControlReceiver remoteControlReceiver;
+	//private RemoteControlReceiver remoteControlReceiver;
 	private TelephonyManager telephonyManager;
 	private FileHandlers fileHandlers;
+	
+	//animation for album art
+	private GestureDetector gestureDetector;
+	View.OnTouchListener gestureListener;
+	private Animation slideLeftIn;
+	private Animation slideLeftOut;
+	private Animation slideRightIn;
+	 private Animation slideRightOut;
+	private ViewFlipper viewFlipper;
+	private static final int SWIPE_MIN_DISTANCE = 3;
+    private static final int SWIPE_MAX_OFF_PATH = 300;
+	private static final int SWIPE_THRESHOLD_VELOCITY = 0;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -105,9 +113,9 @@ public class MainActivity extends Activity implements OnCompletionListener,
 			setContentView(R.layout.player);
 			
 			//swipe listeners
-			ActivitySwipeDetector swipe = new ActivitySwipeDetector(this);
-			RelativeLayout swipe_layout = (RelativeLayout) findViewById(R.id.homeScreen);
-			swipe_layout.setOnTouchListener(swipe);
+			//ActivitySwipeDetector swipe = new ActivitySwipeDetector(this);
+			//RelativeLayout swipe_layout = (RelativeLayout) findViewById(R.id.homeScreen);
+			//swipe_layout.setOnTouchListener(swipe);
 			
 			
 			
@@ -135,9 +143,6 @@ public class MainActivity extends Activity implements OnCompletionListener,
 			IntentFilter filter = new IntentFilter(Intent.ACTION_HEADSET_PLUG);
 			filter.setPriority(1000);
 			registerReceiver(myReceiver, filter);
-			IntentFilter remoteControlRecieverFilter = new IntentFilter(Intent.ACTION_MEDIA_BUTTON);
-			remoteControlRecieverFilter.setPriority(1000); 
-		    registerReceiver(remoteControlReceiver, remoteControlRecieverFilter);
 			fileHandlers = new FileHandlers();
 			//1remoteControlReceiver= new RemoteControlReceiver();
 			telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
@@ -155,7 +160,10 @@ public class MainActivity extends Activity implements OnCompletionListener,
 			btnSettings = (ImageButton) findViewById(R.id.btnSettings);
 			btnRepeat = (ImageButton) findViewById(R.id.btnRepeat);
 			btnShuffle = (ImageButton) findViewById(R.id.btnShuffle);
-			coverAlbum=(ImageView) findViewById(R.id.albumArt);
+			//coverAlbum=(ImageView) findViewById(R.id.);
+			//coverAlbumPreviours=(ImageView) findViewById(R.id.songThumbnailPrevious);
+			coverAlbumPlay=(ImageView) findViewById(R.id.songThumbnailPlay);
+			//coverAlbumNext=(ImageView) findViewById(R.id.songThumbnailNext);
 			songCurrentDurationLabel = (TextView) findViewById(R.id.songCurrentDurationLabel);
 			songTotalDurationLabel = (TextView) findViewById(R.id.songTotalDurationLabel);
 			songProgressBar = (SeekBar) findViewById(R.id.songProgressBar);
@@ -216,8 +224,26 @@ public class MainActivity extends Activity implements OnCompletionListener,
 			homeScreen.setBackgroundDrawable((Drawable)p);*/
 			utils.colorSeter(homeScreen, getApplicationContext());
 			
-			
-			
+			//album art animation
+			viewFlipper = (ViewFlipper)findViewById(R.id.songThumbnail);
+	        slideLeftIn = AnimationUtils.loadAnimation(this, R.drawable.slide_left_in);
+	        slideLeftOut = AnimationUtils.loadAnimation(this, R.drawable.slide_left_out);
+	        slideRightIn = AnimationUtils.loadAnimation(this, R.drawable.slide_right_in);
+	        slideRightOut = AnimationUtils.loadAnimation(this, R.drawable.slide_right_out);
+	        viewFlipper.setDisplayedChild(viewFlipper.indexOfChild(findViewById(R.id.songThumbnailPlay)));
+	        gestureDetector = new GestureDetector(new MyGestureDetector());
+	        gestureListener = new View.OnTouchListener() {
+	            public boolean onTouch(View v, MotionEvent event) {
+	                if (gestureDetector.onTouchEvent(event)) {
+	                    return true;
+	                }
+	                return false;
+	            }
+	        };
+	        
+	        
+	        
+	        
 			
 			mp.setOnCompletionListener(new OnCompletionListener() {
 	            @Override
@@ -230,6 +256,7 @@ public class MainActivity extends Activity implements OnCompletionListener,
 	            			currentSongIndex=0;
 	            		}            		
 	            	}
+	            	if(playingCurrently)
 	        		playSong(currentSongIndex);	
 	            }
 	    	});
@@ -256,6 +283,7 @@ public class MainActivity extends Activity implements OnCompletionListener,
 				public void onClick(View v) {
 					Intent i = new Intent(getApplicationContext(),
 							SwipeActivity.class);
+					i.putExtra("songPlaying", currentSongIndex);
 					startActivityForResult(i, 101);
 				}
 	
@@ -377,19 +405,18 @@ public class MainActivity extends Activity implements OnCompletionListener,
             song.setBitmap(bitmap);
         } catch (FileNotFoundException exception) {
             exception.printStackTrace();
-            coverAlbum.setImageResource(R.drawable.images);
+            coverAlbumPlay.setImageResource(R.drawable.images);
         } catch (IOException e) {
 
             e.printStackTrace();
         }
         if(song.getBitmap()!=null){
-		coverAlbum.setImageBitmap(song.getBitmap());
-		coverAlbum.setMinimumHeight(song.getBitmap().getHeight());
-		coverAlbum.setMinimumWidth(song.getBitmap().getWidth());
+        	coverAlbumPlay.setImageBitmap(song.getBitmap());
+        	coverAlbumPlay.setMinimumHeight(song.getBitmap().getHeight());
+        	coverAlbumPlay.setMinimumWidth(song.getBitmap().getWidth());
         }else{
-        	coverAlbum.setImageResource(R.drawable.images);
+        	coverAlbumPlay.setImageResource(R.drawable.images);
         }
-        
 		songTitleLable.setText(song.getTitle()+" "+currentSongIndex);
 		// Changing Button Image to pause image
         btnPlay.setImageResource(R.drawable.btn_pause);
@@ -449,6 +476,13 @@ public class MainActivity extends Activity implements OnCompletionListener,
 			// play selected song
 			playSong(currentSongIndex);
 		}
+		if (resultCode == 203) {
+			String  title_key= data.getExtras().getString("title_key");
+			songsList = sInfo.getSongs(getContentResolver());
+			currentSongIndex = sInfo.getSongBasedOnTitle_key(songsList,title_key);
+			// play selected song
+			playSong(currentSongIndex);
+		}
 	}
 	
 	/**
@@ -463,6 +497,7 @@ public class MainActivity extends Activity implements OnCompletionListener,
      */
     private Runnable mUpdateTimeTask=new Runnable() {
 		public void run() {
+			try{
 			long totalDuration=mp.getDuration();
 			long currentDuration=mp.getCurrentPosition();
 			//display the time
@@ -474,6 +509,9 @@ public class MainActivity extends Activity implements OnCompletionListener,
 			songProgressBar.setProgress(progress);
 			//run this thread repeatedly
 			myhandle.postDelayed(this, 100);
+			}catch(Exception e){
+				Log.i("", "mUpdateTimeTask"+e.toString());
+			}
 		}
 	};
 
@@ -517,7 +555,7 @@ public class MainActivity extends Activity implements OnCompletionListener,
 
 	}
 	
-	//this class is called when the head set hardware keys are pressed
+	/*//this class is called when the head set hardware keys are pressed
 	public class RemoteControlReceiver extends BroadcastReceiver {
 	    @Override
 	    public void onReceive(Context context, Intent intent) {
@@ -544,7 +582,7 @@ public class MainActivity extends Activity implements OnCompletionListener,
 	            }
 	        }
 	    }
-	}
+	}*/
 	
 	//this class is called when the head set is plugged in or out
 	private class MusicIntentReceiver extends BroadcastReceiver {
@@ -630,27 +668,13 @@ public class MainActivity extends Activity implements OnCompletionListener,
 	}
 	@Override public void onPause() {
 	    //unregisterReceiver(myReceiver);
-	    mSensorManager.unregisterListener(mSensorListener);
+	  /*  mSensorManager.unregisterListener(mSensorListener);*/
 	    super.onPause();
 	}
 	
-	@Override
-	public boolean onKeyDown (int keyCode, KeyEvent event){
-		//this method is used for handling the Headeset events
-			if( keyCode== KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE||keyCode== KeyEvent.KEYCODE_MEDIA_PLAY||keyCode== KeyEvent.KEYCODE_MEDIA_PAUSE||keyCode== KeyEvent.KEYCODE_MEDIA_STOP){
-			if(playingCurrently){
-				pauseSetup();
-				return true;
-				}else{
-					playSetup();
-					return true;
-				}
-			}
-		return false;
-	}
+	
 
-
-	@Override
+	/*@Override
 	public void bottom2top(View v) {
 		// TODO Auto-generated method stub
 		
@@ -662,7 +686,7 @@ public class MainActivity extends Activity implements OnCompletionListener,
 		// TODO Auto-generated method stub
 		Log.i("","LeftToRightSwipe!");
 		Intent i = new Intent(getApplicationContext(),
-				PlayListActivity.class);
+				CustomizedListView.class);
 		
 		//i.putParcelableArrayListExtra("songList",songsList );
 		startActivityForResult(i, 100);
@@ -683,6 +707,83 @@ public class MainActivity extends Activity implements OnCompletionListener,
 	public void top2bottom(View v) {
 		// TODO Auto-generated method stub
 		
-	}
+	}*/
 
+	
+    class MyGestureDetector extends SimpleOnGestureListener {
+        @Override
+        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+            try {
+/*            	Bitmap bitmap = null;
+            	Song song = null;
+            	for(int i=-1;i<=2;i=i+2){
+	            	try {
+	            		if(i==-1){
+	            			coverAlbum = coverAlbumPreviours;
+	            		}else{
+	            			coverAlbum = coverAlbumNext;
+	            		}
+	            		song = (Song)songsList.get(currentSongIndex+i);
+	                    bitmap = MediaStore.Images.Media.getBitmap(
+	                    		getContentResolver(), song.getAlbumArtUrl());
+	                    if(bitmap!=null)
+	                    bitmap = Bitmap.createScaledBitmap(bitmap, bitmap.getWidth(), bitmap.getHeight(), true);
+	                    song.setBitmap(bitmap);
+	                } catch (FileNotFoundException exception) {
+	                    exception.printStackTrace();
+	                    coverAlbum.setImageResource(R.drawable.images);
+	                } catch (IOException e) {
+	
+	                    e.printStackTrace();
+	                }
+	                if(song.getBitmap()!=null){
+	                	coverAlbum.setImageBitmap(song.getBitmap());
+	                	coverAlbum.setMinimumHeight(song.getBitmap().getHeight());
+	                	coverAlbum.setMinimumWidth(song.getBitmap().getWidth());
+	                }else{
+	                	coverAlbum.setImageResource(R.drawable.images);
+	                }
+            	}
+*/
+                if (Math.abs(e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH)
+                    return false;
+                // right to left swipe
+                if(e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
+                	viewFlipper.setInAnimation(slideLeftIn);
+                    viewFlipper.setOutAnimation(slideLeftOut);
+                    nextSetup();
+                	viewFlipper.showNext();
+                }  else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
+                	viewFlipper.setInAnimation(slideRightIn);
+                	viewFlipper.setOutAnimation(slideRightOut);
+                	previousSetup();
+                	viewFlipper.showPrevious();
+                }
+            } catch (Exception e) {
+                // nothing
+            	Log.i("", e.toString());
+            }
+            return false;
+        }
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if (gestureDetector.onTouchEvent(event))
+	        return true;
+	    else
+	    	return false;
+    }
+    
+    @Override
+    public void onStop(){
+    	super.onStop();
+    	Log.i("onstop","onstop");
+    }
+    
+    @Override
+    public void onDestroy(){
+    	super.onDestroy();
+    	Log.i("ondestroy","ondestroy");
+    }
 }

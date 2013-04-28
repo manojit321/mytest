@@ -4,7 +4,9 @@ import com.manoj.macawplayer.R;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.RelativeLayout;
 
 public class Utilities {
@@ -99,5 +101,38 @@ public class Utilities {
 			homeScreen.setBackgroundColor(Color.parseColor(fileHandlers.findKeyValue("temp.txt",context, "backgroundColor")));
 		}
 		return homeScreen;
+    }
+    
+    public FrameLayout colorSeter(FrameLayout homeScreen,Context context){
+    	FileHandlers fileHandlers = new FileHandlers();
+    	if(fileHandlers.findKeyValue("temp.txt", context, "backgroundColor").equals("theme_black")){
+			homeScreen.setBackgroundResource(R.drawable.theme_black);
+		}
+		else if(fileHandlers.findKeyValue("temp.txt",context, "backgroundColor").equals("theme_pink")){
+			homeScreen.setBackgroundResource(R.drawable.theme_pink);
+		}
+		else if(fileHandlers.findKeyValue("temp.txt",context, "backgroundColor").equals("theme_skyblue")){
+			homeScreen.setBackgroundResource(R.drawable.theme_skyblue);
+		}
+		else{
+			homeScreen.setBackgroundColor(Color.parseColor(fileHandlers.findKeyValue("temp.txt",context, "backgroundColor")));
+		}
+		return homeScreen;
+    }
+    
+    public int cacheColorHint(ListView homeScreen,Context context){
+    	FileHandlers fileHandlers = new FileHandlers();
+    	if(fileHandlers.findKeyValue("temp.txt", context, "backgroundColor").equals("theme_black")){
+			return R.drawable.theme_black;
+		}
+		else if(fileHandlers.findKeyValue("temp.txt",context, "backgroundColor").equals("theme_pink")){
+			return R.drawable.theme_pink;
+		}
+		else if(fileHandlers.findKeyValue("temp.txt",context, "backgroundColor").equals("theme_skyblue")){
+			return R.drawable.theme_skyblue;
+		}
+		else{
+			return Color.parseColor(fileHandlers.findKeyValue("temp.txt",context, "backgroundColor"));
+		}
     }
 }

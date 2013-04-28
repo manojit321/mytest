@@ -6,6 +6,13 @@
     android:background="#0099CC"
     android:id="@+id/song_layout">
     
+    <EditText
+        android:id="@+id/song_search"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:hint="Search Albums.."
+        android:inputType="textVisiblePassword"
+        /> 
     <ListView
         android:id="@+id/song_list"
         android:layout_width="fill_parent"

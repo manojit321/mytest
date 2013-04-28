@@ -176,23 +176,61 @@
 
     </LinearLayout>
 
-    <LinearLayout
+    <ViewFlipper
         android:id="@+id/songThumbnail"
-        android:layout_width="fill_parent"
+                android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_above="@+id/shufflePanel"
         android:layout_alignParentLeft="true"
         android:layout_below="@+id/player_header_bg"
         android:gravity="center"
         android:paddingBottom="10dp"
-        android:paddingTop="10dp" >
+        android:paddingTop="10dp">
+
+        <!-- <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        >
 
         <ImageView
-            android:id="@+id/albumArt"
-            android:layout_width="match_parent"
+            android:id="@+id/songThumbnailPrevious"
+			android:layout_width="match_parent"
             android:layout_height="199dp"
             android:contentDescription="@string/skyfall"
-            android:src="@drawable/images" />
-    </LinearLayout>
+            android:src="@drawable/images"
+            
+            />
+ 
+    </LinearLayout>-->        
+            <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        >
 
+        <ImageView
+            android:id="@+id/songThumbnailPlay"
+			android:layout_width="match_parent"
+            android:layout_height="199dp"
+            android:contentDescription="@string/skyfall"
+            android:src="@drawable/images"
+            
+            />
+        
+    </LinearLayout>
+     <!--  <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        >
+
+        <ImageView
+            android:id="@+id/songThumbnailNext"
+			android:layout_width="match_parent"
+            android:layout_height="199dp"
+            android:contentDescription="@string/skyfall"
+            android:src="@drawable/images"
+            
+            />
+        
+    </LinearLayout>
+ -->	</ViewFlipper>
 </RelativeLayout>

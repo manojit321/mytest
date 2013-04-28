@@ -3,7 +3,8 @@
         android:orientation="vertical"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:id="@+id/tablayout">
+        android:id="@+id/tablayout"
+        android:background="@drawable/theme_pink">
     <TabHost
         android:id="@android:id/tabhost"
         android:layout_width="fill_parent"
@@ -20,7 +21,6 @@
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="0"
-                android:background="#000000"
                 />
  
             <FrameLayout
