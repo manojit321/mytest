@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/homepage_widget"
+    android:layout_width="fill_parent"
+    android:layout_height="71dp"
+    android:layout_alignParentBottom="true"
+    android:layout_alignParentLeft="true"
+    android:layout_marginBottom="10dp"
+    android:gravity="center"
+    android:background="@drawable/theme_skyblue" >
+
+        <ImageButton
+            android:id="@+id/hw_btnShuffle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:contentDescription="@string/skyfall"
+            android:scaleType="center"
+            android:src="@drawable/bn_shuffle" 
+            android:padding="10dp"/>
+
+            <ImageButton
+                android:id="@+id/hw_btnPrevious"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@null"
+                android:src="@drawable/btn_previous" 
+                android:contentDescription="@string/skyfall"
+                android:padding="10dp"
+                />
+
+            <ImageButton
+                android:id="@+id/hw_btnPlay"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@null"
+                android:contentDescription="@string/skyfall"
+                android:src="@drawable/btn_play"
+                android:padding="10dp" />
+
+            <ImageButton
+                android:id="@+id/hw_btnNext"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@null"
+                android:contentDescription="@string/skyfall"
+                android:src="@drawable/btn_next"
+                android:padding="10dp" />
+            
+			<ImageButton
+                android:id="@+id/hw_btnRepeat"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@null"
+                android:contentDescription="@string/skyfall"
+                android:src="@drawable/btn_repeat" 
+                android:padding="10dp"/>
+			
+    </LinearLayout>

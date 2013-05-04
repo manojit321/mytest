@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Properties;
+import java.util.Random;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -127,12 +128,14 @@ public class MainActivity extends Activity implements OnCompletionListener,
 		    mSensorListener.setOnShakeListener(new ShakeEventListener.OnShakeListener() {
 
 		      public void onShake(float changeSong) {
-		        Toast.makeText(MainActivity.this, "Shake!"+changeSong, Toast.LENGTH_SHORT).show();
-		        if(changeSong==1){
-		        	previousSetup();
-		        }else{
-		        	nextSetup();
-		        }
+		    	if(playingCurrently)  {
+			        Toast.makeText(MainActivity.this, "Shake!"+changeSong, Toast.LENGTH_SHORT).show();
+			        if(changeSong==1){
+			        	previousSetup();
+			        }else{
+			        	nextSetup();
+			        }
+		      	}
 		      }
 		    });
 			
@@ -369,7 +372,7 @@ public class MainActivity extends Activity implements OnCompletionListener,
 						Toast.makeText(getApplicationContext(), "Shuffle is ON", Toast.LENGTH_SHORT).show();
 	                    // make shuffle to false
 	                    isRepeat = false;
-	                    Collections.shuffle(songsList);
+	                    Collections.shuffle(songsList, new Random());
 	                    btnShuffle.setImageResource(R.drawable.btn_shufflefocused);
 					}
 				}
