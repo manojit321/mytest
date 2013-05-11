@@ -4,7 +4,7 @@
     android:versionCode="1"
     android:versionName="1.0" >
     <uses-sdk
-        android:minSdkVersion="9"
+        android:minSdkVersion="14"
         android:targetSdkVersion="17" />
     
     
@@ -18,23 +18,20 @@
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 	<uses-permission android:name="android.permission.WRITE_SETTINGS"></uses-permission>
 	<uses-permission android:name="com.manoj.MYPERMISSION" />	
+		<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
-    <receiver android:name=".MusicIntentReceiver" >
-	  <intent-filter>
-	   <action android:name="android.intent.action.HEADSET_PLUG" />
-	  </intent-filter>
+<!--     <receiver android:name=".MusicIntentReceiver" >
+        <intent-filter>
+            <action android:name="android.intent.action.HEADSET_PLUG" />
+        </intent-filter>
 	</receiver>
-	<receiver android:name=".RemoteControlReceiver">
-	    <intent-filter>
-	        <action android:name="android.intent.action.MEDIA_BUTTON" />
-	    </intent-filter>
-	</receiver>
+ -->	
 	
-	<receiver
+<!-- 	<receiver
        android:icon="@drawable/adele"
        android:label="Macawplayer"
        android:name="HomeScreenWidget" >
@@ -46,7 +43,16 @@
           android:name="android.appwidget.provider"
           android:resource="@xml/homepage_widget_info" />
 	</receiver>
-	
+	<service android:name="PlayerService"
+	     android:permission="com.manoj.MYPERMISSION">
+			<intent-filter>
+				<action android:name="org.kreed.vanilla.action.PLAY" />
+				<action android:name="org.kreed.vanilla.action.PAUSE" />
+				<action android:name="org.kreed.vanilla.action.TOGGLE_PLAYBACK" />
+				<action android:name="org.kreed.vanilla.action.NEXT_SONG" />
+				<action android:name="org.kreed.vanilla.action.PREVIOUS_SONG" />
+			</intent-filter>
+		</service> -->
         <activity 
             android:name="com.manoj.macawplayer.MainActivity"
             android:label="@string/app_name" 
@@ -76,5 +82,67 @@
          <activity
             android:name=".CustomizedListView">
          </activity>
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         <service
+            android:name="com.example.android.pingme.PingService"
+            android:permission="com.manoj.MYPERMISSION"
+            android:label="PingServiceLabel" android:enabled="true">
+        </service>
+        <activity
+            android:permission="com.manoj.MYPERMISSION"
+            android:name="com.example.android.pingme.ResultActivity"
+            android:label="Take Action"
+            android:launchMode="singleTask"
+            android:taskAffinity=""
+            android:excludeFromRecents="true"/>
+                 <activity
+                     android:permission="com.manoj.MYPERMISSION"
+            android:name="com.example.android.pingme.MainActivityV1">
+         </activity>
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         <receiver android:name="RemoteControlReceiver"
+             android:permission="com.manoj.MYPERMISSION" >
+		    <intent-filter>
+		        <action android:name="android.intent.action.MEDIA_BUTTON" />
+		    </intent-filter>
+		</receiver>
     </application>
 </manifest>

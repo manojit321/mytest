@@ -457,7 +457,7 @@ public class SongCustomFragment extends Fragment {
             // Setting all values in listview
             title.setText(song.get("KEY_TITLE").toString());
             artist.setText(song.get("KEY_ARTIST").toString());
-            duration.setText(song.get("KEY_DURATION").toString());
+            duration.setText(utilities.milliSecondsToTimer(Long.parseLong(song.get("KEY_DURATION").toString())));
             
            /* LayoutParams lp = new LayoutParams(width*100/20, 
                     LayoutParams.WRAP_CONTENT);

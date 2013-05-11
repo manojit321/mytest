@@ -3,6 +3,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.util.Log;
 
 
 /**
@@ -18,10 +19,10 @@ public class ShakeEventListener implements SensorEventListener {
    * Minimum times in a shake gesture that the direction of movement needs to
    * change.
    */
-  private static final int MIN_DIRECTION_CHANGE = 3;
+  private static final int MIN_DIRECTION_CHANGE = 2;
 
   /** Maximum pause between movements. */
-  private static final int MAX_PAUSE_BETHWEEN_DIRECTION_CHANGE = 200;
+  private static final int MAX_PAUSE_BETHWEEN_DIRECTION_CHANGE = 150;
 
   /** Maximum allowed time for shake gesture. */
   private static final int MAX_TOTAL_DURATION_OF_SHAKE = 400;
@@ -85,7 +86,10 @@ public class ShakeEventListener implements SensorEventListener {
 
       // check if the last movement was not long ago
       long lastChangeWasAgo = now - mLastDirectionChangeTime;
-      if (lastChangeWasAgo < MAX_PAUSE_BETHWEEN_DIRECTION_CHANGE) {
+      Log.i("lastChangeWasAgo", lastChangeWasAgo+"");
+      Log.i("totalDuration", now - mFirstDirectionChangeTime+"");
+      if (lastChangeWasAgo < MAX_PAUSE_BETHWEEN_DIRECTION_CHANGE)
+      {
 
         // store movement data
         mLastDirectionChangeTime = now;
@@ -96,12 +100,15 @@ public class ShakeEventListener implements SensorEventListener {
         lastY = y;
         lastZ = z;
 
+        Log.i("mDirectionChangeCount", mDirectionChangeCount+"");
         // check how many movements are so far
-        if (mDirectionChangeCount >= MIN_DIRECTION_CHANGE) {
+        if (mDirectionChangeCount >= MIN_DIRECTION_CHANGE) 
+        {
 
           // check total duration
           long totalDuration = now - mFirstDirectionChangeTime;
-          if (totalDuration < MAX_TOTAL_DURATION_OF_SHAKE) {
+          if (totalDuration < MAX_TOTAL_DURATION_OF_SHAKE) 
+          {
         	  float direction=x;
         	  if(x<0){
         		  direction=3;
@@ -110,12 +117,14 @@ public class ShakeEventListener implements SensorEventListener {
             	  direction=1;
               }
 
+        	  	resetShakeParameters();
 	            mShakeListener.onShake(direction);
-	            resetShakeParameters();
           }
         }
 
-      } else {
+      } 
+      else
+      {
         resetShakeParameters();
       }
     }

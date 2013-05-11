@@ -27,6 +27,7 @@ import com.manoj.customview.helper.ImageCache;
 import com.manoj.customview.helper.ImageFetcher;
 import com.manoj.fragments.AlbumFragment;
 import com.manoj.fragments.ArtistFragment;
+import com.manoj.fragments.PlaylistFragment;
 import com.manoj.fragments.SongCustomFragment;
 import com.manoj.fragments.SongFragment;
 import com.manoj.helper.FileHandlers;
@@ -154,6 +155,7 @@ public class SwipeActivity extends FragmentActivity implements TabHost.OnTabChan
         fragments.add(Fragment.instantiate(this, ArtistFragment.class.getName()));
         //fragments.add(Fragment.instantiate(this, SongFragment.class.getName()));
         fragments.add(Fragment.instantiate(this, SongCustomFragment.class.getName()));
+        fragments.add(Fragment.instantiate(this, PlaylistFragment.class.getName()));
         this.mPagerAdapter  = new PagerAdapter(super.getSupportFragmentManager(), fragments);
         //
         this.mViewPager = (ViewPager)super.findViewById(R.id.viewpager);
@@ -177,7 +179,9 @@ public class SwipeActivity extends FragmentActivity implements TabHost.OnTabChan
         this.mapTabInfo.put(tabInfo.tag, tabInfo);
         /*SwipeActivity.AddTab(this, this.mTabHost, this.mTabHost.newTabSpec("Tab3").setIndicator("Songs"), ( tabInfo = new TabInfo("Tab3", SongFragment.class, args)));
         this.mapTabInfo.put(tabInfo.tag, tabInfo);*/
-        SwipeActivity.AddTab(this, this.mTabHost, this.mTabHost.newTabSpec("Tab4").setIndicator("SongsLayout"), ( tabInfo = new TabInfo("Tab4", SongCustomFragment.class, args)));
+        SwipeActivity.AddTab(this, this.mTabHost, this.mTabHost.newTabSpec("Tab4").setIndicator("Songs"), ( tabInfo = new TabInfo("Tab4", SongCustomFragment.class, args)));
+        this.mapTabInfo.put(tabInfo.tag, tabInfo);
+        SwipeActivity.AddTab(this, this.mTabHost, this.mTabHost.newTabSpec("Tab5").setIndicator("Playlist"), ( tabInfo = new TabInfo("Tab5", PlaylistFragment.class, args)));
         this.mapTabInfo.put(tabInfo.tag, tabInfo);
         // Default to first tab
         //this.onTabChanged("Tab4");

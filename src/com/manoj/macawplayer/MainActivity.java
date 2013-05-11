@@ -3,22 +3,20 @@ package com.manoj.macawplayer;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Properties;
 import java.util.Random;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.os.Bundle;
@@ -43,11 +41,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
 
+import com.example.android.pingme.MainActivityV1;
 import com.manoj.helper.FileHandlers;
 import com.manoj.helper.Song;
 import com.manoj.helper.SongInfo;
 import com.manoj.helper.Utilities;
 import com.manoj.listeners.ShakeEventListener;
+import com.manoj.service.RemoteControlReceiver;
 
 public class MainActivity extends Activity implements OnCompletionListener,
 		SeekBar.OnSeekBarChangeListener/*,SwipeInterface */{
@@ -55,7 +55,6 @@ public class MainActivity extends Activity implements OnCompletionListener,
 	private SensorManager mSensorManager;
 	private ShakeEventListener mSensorListener;
 	private ImageButton btnPlay;
-	private ImageButton btnPause;
 	private ImageButton btnNext;
 	private ImageButton btnPrevious;
 	private ImageButton btnShuffle;
@@ -66,10 +65,7 @@ public class MainActivity extends Activity implements OnCompletionListener,
 	private TextView songCurrentDurationLabel;
 	private TextView songTotalDurationLabel;
 	private TextView songTitleLable;
-	private ImageView coverAlbum;
-	private ImageView coverAlbumPreviours;
 	private ImageView coverAlbumPlay;
-	private ImageView coverAlbumNext;
 	private MediaPlayer mp;
 	private RelativeLayout homeScreen;
 
@@ -77,22 +73,34 @@ public class MainActivity extends Activity implements OnCompletionListener,
 	private Handler myhandle = new Handler();
 	private SongManager songManager;
 	private Utilities utils;
-	private int seekForwardTime = 5000; // 5000 milliseconds
-	private int seekBackwardTime = 5000; // 5000 milliseconds
 	private int currentSongIndex = 0;
 	private boolean isShuffle = false;
 	private boolean isRepeat = false;
 	private boolean playingCurrently= false;
 	private ArrayList songsList = new ArrayList();
 	private SongInfo sInfo=new SongInfo();
-	ArrayList<HashMap> filteredSongMap = new ArrayList<HashMap>();
 	private MusicIntentReceiver myReceiver;
 	//private RemoteControlReceiver remoteControlReceiver;
+	
+	
+	
+	
+	
+	private AudioManager mAudioManager;
+    private ComponentName mRemoteControlResponder;
+
+	
+	
+	
+	
+	
+	
 	private TelephonyManager telephonyManager;
 	private FileHandlers fileHandlers;
 	
 	//animation for album art
 	private GestureDetector gestureDetector;
+	
 	View.OnTouchListener gestureListener;
 	private Animation slideLeftIn;
 	private Animation slideLeftOut;
@@ -102,6 +110,7 @@ public class MainActivity extends Activity implements OnCompletionListener,
 	private static final int SWIPE_MIN_DISTANCE = 3;
     private static final int SWIPE_MAX_OFF_PATH = 300;
 	private static final int SWIPE_THRESHOLD_VELOCITY = 0;
+	private boolean playingBeforeCall = false;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -120,7 +129,6 @@ public class MainActivity extends Activity implements OnCompletionListener,
 			
 			
 			
-			
 			//shake listener
 			mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 		    mSensorListener = new ShakeEventListener();   
@@ -130,6 +138,7 @@ public class MainActivity extends Activity implements OnCompletionListener,
 		      public void onShake(float changeSong) {
 		    	if(playingCurrently)  {
 			        Toast.makeText(MainActivity.this, "Shake!"+changeSong, Toast.LENGTH_SHORT).show();
+			        Log.i("currentSongIndex ", currentSongIndex+"");
 			        if(changeSong==1){
 			        	previousSetup();
 			        }else{
@@ -147,7 +156,7 @@ public class MainActivity extends Activity implements OnCompletionListener,
 			filter.setPriority(1000);
 			registerReceiver(myReceiver, filter);
 			fileHandlers = new FileHandlers();
-			//1remoteControlReceiver= new RemoteControlReceiver();
+			//remoteControlReceiver= new RemoteControlReceiver();
 			telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
 			if(telephonyManager != null) {
 		    	telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
@@ -194,7 +203,9 @@ public class MainActivity extends Activity implements OnCompletionListener,
 			    playSong(currentSongIndex);
 			  }
 			
-			Resources resources = getResources();
+	/*	for loading form prperty files use the following logic
+	 * 	
+	 * Resources resources = getResources();
 	    	try {
 	    	    InputStream rawResource = resources.openRawResource(R.raw.my_config);
 	    	    Properties properties = new Properties();
@@ -207,7 +218,7 @@ public class MainActivity extends Activity implements OnCompletionListener,
 	    	} catch (IOException e) {
 	    	    System.err.println("Failed to open microlog property file");
 	    	    e.printStackTrace();
-	    	}
+	    	}*/
 			//set the background for app
 			//homeScreen.setBackgroundColor(Color.parseColor(fileHandlers.findKeyValue("temp.txt", getApplicationContext(), "backgroundColor")));
 			/*String colr=fileHandlers.findKeyValue("temp.txt", getApplicationContext(), "backgroundColor");
@@ -271,7 +282,8 @@ public class MainActivity extends Activity implements OnCompletionListener,
 				@Override
 				public void onClick(View v) {
 					Intent i = new Intent(getApplicationContext(),
-							ThemeList.class);
+					//		ThemeList.class);
+							MainActivityV1.class);
 					
 					//i.putParcelableArrayListExtra("songList",songsList );
 					startActivityForResult(i, 100);
@@ -420,7 +432,7 @@ public class MainActivity extends Activity implements OnCompletionListener,
         }else{
         	coverAlbumPlay.setImageResource(R.drawable.images);
         }
-		songTitleLable.setText(song.getTitle()+" "+currentSongIndex);
+		songTitleLable.setText(song.getTitle());
 		// Changing Button Image to pause image
         btnPlay.setImageResource(R.drawable.btn_pause);
         playingCurrently=true;
@@ -558,8 +570,9 @@ public class MainActivity extends Activity implements OnCompletionListener,
 
 	}
 	
-	/*//this class is called when the head set hardware keys are pressed
-	public class RemoteControlReceiver extends BroadcastReceiver {
+	
+	//this class is called when the head set hardware keys are pressed
+	/*public class RemoteControlReceiver extends BroadcastReceiver {
 	    @Override
 	    public void onReceive(Context context, Intent intent) {
 	        if (Intent.ACTION_MEDIA_BUTTON.equals(intent.getAction())) {
@@ -615,12 +628,14 @@ public class MainActivity extends Activity implements OnCompletionListener,
 	PhoneStateListener phoneStateListener = new PhoneStateListener() {
 	    @Override
 	    public void onCallStateChanged(int state, String incomingNumber) {
-	        if (state == TelephonyManager.CALL_STATE_RINGING) {
+	        if (state == TelephonyManager.CALL_STATE_RINGING && playingCurrently) {
 	            //Incoming call: Pause music
+	        	playingBeforeCall = true;
 	        	pauseSetup();
-	        } else if(state == TelephonyManager.CALL_STATE_IDLE) {
+	        } else if(state == TelephonyManager.CALL_STATE_IDLE && playingBeforeCall) {
 	            //Not in call: Play music
 	        	playSetup();
+	        	playingBeforeCall = false;
 	        } else if(state == TelephonyManager.CALL_STATE_OFFHOOK) {
 	            //A call is dialing, active or on hold
 	        }
@@ -636,11 +651,12 @@ public class MainActivity extends Activity implements OnCompletionListener,
 	public void playSetup(){
 		mp.start();
 	    playingCurrently=true;
+	    playingBeforeCall = true;
 		btnPlay.setImageResource(R.drawable.btn_pause);
 	}
 	public void pauseSetup(){
 		mp.pause();
-		playingCurrently=false;
+		playingCurrently = false;
 		btnPlay.setImageResource(R.drawable.btn_play);
 	}
 	public void previousSetup(){

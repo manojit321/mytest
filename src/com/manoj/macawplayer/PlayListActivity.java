@@ -18,11 +18,13 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.app.ListActivity;
 
 public class PlayListActivity extends ListActivity {
 	//song list
 	ArrayList songsList1=new ArrayList();
+	SongInfo sInfo=new SongInfo();
 	@Override
 	public void onCreate(Bundle savedInstanceState){
 		try{
@@ -32,10 +34,22 @@ public class PlayListActivity extends ListActivity {
 			setContentView(R.layout.playlist);
 			ArrayList<HashMap<String, String>> songsListData = new ArrayList<HashMap<String, String>>();
 			SongManager songManager=new SongManager();
-			SongInfo si=new SongInfo();
 			
-			if(this.songsList1!=null && this.songsList1.isEmpty())
-			 this.songsList1=si.getSongs(getContentResolver());
+			
+			
+			
+			//Get the bundle
+		    Bundle bundle = getIntent().getExtras();
+
+		    //Extract the data…
+		    String playlistName = bundle.getString("playlistName"); 
+		    songsList1 = sInfo.getAlbumSongs(getContentResolver(),playlistName);
+			
+			
+			
+			
+			/*if(this.songsList1!=null && this.songsList1.isEmpty())
+			 this.songsList1=si.getSongs(getContentResolver());*/
 			
 				for (int i = 0; i < songsList1.size(); i++) {
 		            // creating new HashMap
@@ -69,6 +83,7 @@ public class PlayListActivity extends ListActivity {
 	                
 	                //closing playlist view
 	                finish();
+	                startActivity(in);
 				}
 			});
 	
@@ -76,5 +91,5 @@ public class PlayListActivity extends ListActivity {
 		e.printStackTrace();
 	}
 	}
-
+	
 }
