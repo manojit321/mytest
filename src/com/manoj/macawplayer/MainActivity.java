@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
 
+
+import android.R.bool;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -21,6 +23,11 @@ import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Handler.Callback;
+import android.os.HandlerThread;
+import android.os.Looper;
+import android.os.Message;
+import android.os.Process;
 import android.provider.MediaStore;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
@@ -33,6 +40,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -41,7 +49,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
 
+import com.example.android.pingme.CommonConstants;
 import com.example.android.pingme.MainActivityV1;
+import com.example.android.pingme.PingService;
 import com.manoj.helper.FileHandlers;
 import com.manoj.helper.Song;
 import com.manoj.helper.SongInfo;
@@ -50,7 +60,24 @@ import com.manoj.listeners.ShakeEventListener;
 import com.manoj.service.RemoteControlReceiver;
 
 public class MainActivity extends Activity implements OnCompletionListener,
-		SeekBar.OnSeekBarChangeListener/*,SwipeInterface */{
+		SeekBar.OnSeekBarChangeListener/*,SwipeInterface */, Callback{
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static MainActivity sInstance;
+	/**
+	 * Object used for PlaybackService startup waiting.
+	 */
+	private static final Object[] sWait = new Object[0];
+	
+	
+	
 	
 	private SensorManager mSensorManager;
 	private ShakeEventListener mSensorListener;
@@ -73,16 +100,30 @@ public class MainActivity extends Activity implements OnCompletionListener,
 	private Handler myhandle = new Handler();
 	private SongManager songManager;
 	private Utilities utils;
-	private int currentSongIndex = 0;
-	private boolean isShuffle = false;
-	private boolean isRepeat = false;
-	private boolean playingCurrently= false;
-	private ArrayList songsList = new ArrayList();
+	public int currentSongIndex = 0;
+	public boolean isShuffle = false;
+	public boolean isRepeat = false;
+	public boolean playingCurrently= false;
+	public ArrayList songsList = new ArrayList();
 	private SongInfo sInfo=new SongInfo();
 	private MusicIntentReceiver myReceiver;
 	//private RemoteControlReceiver remoteControlReceiver;
 	
 	
+	
+	
+	
+	private Intent mServiceIntent;
+	private boolean nChnageSong = false; 
+	/**
+	 * A Handler running on a worker thread.
+	 */
+	protected Handler mHandler;
+	/**
+	 * The looper for the worker thread.
+	 */
+	protected Looper mLooper;	
+	public Handler refresh = new Handler(Looper.getMainLooper());
 	
 	
 	
@@ -117,6 +158,31 @@ public class MainActivity extends Activity implements OnCompletionListener,
 		
 		try
 		{
+			
+			
+			PingService.addActivity(this);
+			sInstance = this;
+			 // Creates an explicit Intent to start the service that constructs and
+	        // issues the notification.
+	        mServiceIntent = new Intent(getApplicationContext(), PingService.class);
+			HandlerThread thread = new HandlerThread(getClass().getName(), Process.THREAD_PRIORITY_LOWEST);
+			thread.start();
+
+			mLooper = thread.getLooper();
+			mHandler = new Handler(mLooper, this);
+			
+			
+	        mServiceIntent.putExtra(CommonConstants.EXTRA_MESSAGE, "test");
+	        mServiceIntent.setAction(CommonConstants.ACTION_PING);
+
+	        // Launches IntentService "PingService" to set timer.
+	        Log.i("","Launches IntentService pingservice from oncreate of mainactivity");
+	        stopService(mServiceIntent);
+	        startService(mServiceIntent);
+
+			
+			
+			
 			//Remove title bar
 			this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 			super.onCreate(savedInstanceState);
@@ -200,7 +266,12 @@ public class MainActivity extends Activity implements OnCompletionListener,
 			//restores previous session
 			if (savedInstanceState != null){
 			    currentSongIndex = savedInstanceState.getInt("currentSongIndex");
+			    int seekTo = savedInstanceState.getInt("seekTo");
 			    playSong(currentSongIndex);
+			    Log.i("", "from restores previous session"+seekTo);
+			    mp.seekTo(seekTo);
+			  }else{
+				  playSong(currentSongIndex);
 			  }
 			
 	/*	for loading form prperty files use the following logic
@@ -263,6 +334,7 @@ public class MainActivity extends Activity implements OnCompletionListener,
 	            @Override
 	            public void onCompletion(MediaPlayer arg0) 
 	            {
+	            	Log.i("","onCompletion");
 	            	if(!isRepeat){
 	            		if(currentSongIndex<songsList.size()-1){
 	            			currentSongIndex++;
@@ -330,10 +402,12 @@ public class MainActivity extends Activity implements OnCompletionListener,
 					mp.pause();
 					playingCurrently=false;
 					btnPlay.setImageResource(R.drawable.btn_play);
+					updateInfo();
 					}else{
 						playingCurrently=true;
 						mp.start();
 						btnPlay.setImageResource(R.drawable.btn_pause);
+						updateInfo();
 					}
 				}
 			});
@@ -343,14 +417,7 @@ public class MainActivity extends Activity implements OnCompletionListener,
 			btnNext.setOnClickListener(new View.OnClickListener(){
 				@Override
 				public void onClick(View v){
-					if(currentSongIndex<(songsList.size()-1)){
-						playSong(currentSongIndex + 1);
-	                    currentSongIndex = currentSongIndex + 1;
-					}else{
-						 // play first song
-	                    playSong(0);
-	                    currentSongIndex = 0;
-					}
+					nextSetup();
 				}
 			});
 			
@@ -358,14 +425,7 @@ public class MainActivity extends Activity implements OnCompletionListener,
 					btnPrevious.setOnClickListener(new View.OnClickListener(){
 						@Override
 						public void onClick(View v){
-							if(currentSongIndex>0){
-								playSong(currentSongIndex - 1);
-			                    currentSongIndex = currentSongIndex - 1;
-							}else{
-								 // play first song
-			                    playSong(songsList.size()-1);
-			                    currentSongIndex = songsList.size()-1;
-							}
+							previousSetup();
 						}
 					});
 					
@@ -389,6 +449,20 @@ public class MainActivity extends Activity implements OnCompletionListener,
 					}
 				}
 			});
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
 		}catch(Exception e){
 				e.printStackTrace();
 		}
@@ -397,7 +471,9 @@ public class MainActivity extends Activity implements OnCompletionListener,
 	
 	protected void onSaveInstanceState(Bundle bundle) {
 		  super.onSaveInstanceState(bundle);
+		  Log.i("mainactivity","onSaveInstanceState"+mp.getCurrentPosition());
 		  bundle.putInt("currentSongIndex", currentSongIndex);
+		  bundle.putInt("seekTo", mp.getCurrentPosition());
 		}
 	
 	
@@ -406,6 +482,7 @@ public class MainActivity extends Activity implements OnCompletionListener,
 	
 	public void playSong(int index){
 		try{
+		Log.i("play", "playSong");
 		mp.reset();
 		Song song=(Song)songsList.get(index);
 		mp.setDataSource(song.getUrl());
@@ -443,6 +520,8 @@ public class MainActivity extends Activity implements OnCompletionListener,
         
         // Updating progress bar
         updateProgressBar();
+        Log.i("notify", "onChangeNotify is called");
+        onChangeNotify();
 	   }catch(Exception e){
 		   e.printStackTrace();
 	   }
@@ -531,6 +610,84 @@ public class MainActivity extends Activity implements OnCompletionListener,
 	};
 
 
+	public void updateInfo() {
+        refresh.post(notificationTask);
+    }
+	private Runnable notificationTask=new Runnable() {
+	    public void run()
+	    {
+	    	if(!playingCurrently){
+				btnPlay.setImageResource(R.drawable.btn_play);
+			}else{
+				btnPlay.setImageResource(R.drawable.btn_pause);
+			}
+	    	if(nChnageSong){
+	    		try{
+	    		Log.i("play", "playSong");
+	    		mp.reset();
+	    		Song song=(Song)songsList.get(currentSongIndex);
+	    		mp.setDataSource(song.getUrl());
+	    		mp.prepare();
+	    		mp.start();
+	    		Bitmap bitmap = null;
+	            try {
+	                bitmap = MediaStore.Images.Media.getBitmap(
+	                		getContentResolver(), song.getAlbumArtUrl());
+	                if(bitmap!=null)
+	                bitmap = Bitmap.createScaledBitmap(bitmap, bitmap.getWidth(), bitmap.getHeight(), true);
+	                song.setBitmap(bitmap);
+	            } catch (FileNotFoundException exception) {
+	                exception.printStackTrace();
+	                coverAlbumPlay.setImageResource(R.drawable.images);
+	            } catch (IOException e) {
+
+	                e.printStackTrace();
+	            }
+	            if(song.getBitmap()!=null){
+	            	coverAlbumPlay.setImageBitmap(song.getBitmap());
+	            	coverAlbumPlay.setMinimumHeight(song.getBitmap().getHeight());
+	            	coverAlbumPlay.setMinimumWidth(song.getBitmap().getWidth());
+	            }else{
+	            	coverAlbumPlay.setImageResource(R.drawable.images);
+	            }
+	    		songTitleLable.setText(song.getTitle());
+	    		// Changing Button Image to pause image
+	            btnPlay.setImageResource(R.drawable.btn_pause);
+	            playingCurrently=true;
+	            // set Progress bar values
+	            songProgressBar.setProgress(0);
+	            songProgressBar.setMax(100);
+	            
+	            
+	            // Updating progress bar
+	            updateProgressBar();
+	            Log.i("notify", "onChangeNotify is called");
+	    	   }catch(Exception e){
+	    		   e.printStackTrace();
+	    		   nChnageSong = false;
+	    	   }
+	    		nChnageSong = false;
+	    	}
+
+	    	onChangeNotify();
+	    }
+	};
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
@@ -649,36 +806,86 @@ public class MainActivity extends Activity implements OnCompletionListener,
 	
 //setups
 	public void playSetup(){
+		Log.i("Setup", "playSetup");
 		mp.start();
 	    playingCurrently=true;
 	    playingBeforeCall = true;
 		btnPlay.setImageResource(R.drawable.btn_pause);
 	}
 	public void pauseSetup(){
+		Log.i("Setup", "pauseSetup");
 		mp.pause();
 		playingCurrently = false;
 		btnPlay.setImageResource(R.drawable.btn_play);
 	}
 	public void previousSetup(){
+		Log.i("Setup", "previousSetup");
 		if(currentSongIndex>0){
-			playSong(currentSongIndex - 1);
-            currentSongIndex = currentSongIndex - 1;
+			currentSongIndex = currentSongIndex - 1;
+			playSong(currentSongIndex);
 		}else{
+			currentSongIndex = songsList.size()-1;
 			 // play first song
-            playSong(songsList.size()-1);
-            currentSongIndex = songsList.size()-1;
+            playSong(currentSongIndex);
 		}
 	}
 	public void nextSetup(){
+		Log.i("Setup", "nextSetup");
+		Log.i("Setup", ""+mp.getCurrentPosition());
 		if(currentSongIndex<(songsList.size()-1)){
-			playSong(currentSongIndex + 1);
-            currentSongIndex = currentSongIndex + 1;
+			currentSongIndex = currentSongIndex + 1;
+			Log.i("Setup", "above playsong call in nextsetup");
+			playSong(currentSongIndex);
 		}else{
+			currentSongIndex = 0;
 			 // play first song
-            playSong(0);
-            currentSongIndex = 0;
+            playSong(currentSongIndex);
 		}
 	}
+	
+	//setups for the notification
+	public void nPreviousSetup(){
+		Log.i("Setup", "previousSetup");
+		if(currentSongIndex>0){
+			currentSongIndex = currentSongIndex - 1;
+		}else{
+			currentSongIndex = songsList.size()-1;
+		}
+		nChnageSong = true;
+		updateInfo();
+	}
+	public void nNextSetup(){
+		Log.i("Setup", "nextSetup");
+		Log.i("Setup", ""+mp.getCurrentPosition());
+		if(currentSongIndex<(songsList.size()-1)){
+			currentSongIndex = currentSongIndex + 1;
+		}else{
+			currentSongIndex = 0;
+		}
+		nChnageSong = true;
+		updateInfo();
+	}
+	public void nPlaySetup(){
+		Log.i("Setup", "playSetup");
+		mp.start();
+	    playingCurrently=true;
+		updateInfo();
+	}
+	public void nPauseSetup(MainActivity main){
+		Log.i("Setup", "pauseSetup");
+		mp.pause();
+		playingCurrently = false;
+		updateInfo();
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	@Override public void onResume() {
 	    super.onResume();
 	    mSensorManager.registerListener(mSensorListener,
@@ -804,5 +1011,70 @@ public class MainActivity extends Activity implements OnCompletionListener,
     public void onDestroy(){
     	super.onDestroy();
     	Log.i("ondestroy","ondestroy");
+    	mp.release();
+    	stopService(mServiceIntent);
+    	unregisterReceiver(myReceiver);
+  	    mSensorManager.unregisterListener(mSensorListener);
+    	PingService.removeActivity(this);
     }
+    
+    
+    
+    
+    
+    
+    
+    /**
+	 * Return the PlaybackService instance, creating one if needed.
+	 */
+	public static MainActivity get(Context context)
+	{
+		if (sInstance == null) {
+			context.startActivity(new Intent(context, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+
+			while (sInstance == null) {
+				try {
+					synchronized (sWait) {
+						sWait.wait();
+					}
+				} catch (InterruptedException ignored) {
+				}
+			}
+		}
+
+		return sInstance;
+	}
+	 public void onChangeNotify() {
+	        int seconds;
+
+	        // Gets the reminder text the user entered.
+	        String message = "notification";
+
+	        mServiceIntent.putExtra(CommonConstants.EXTRA_MESSAGE, message);
+	        mServiceIntent.setAction(CommonConstants.ACTION_PING);
+
+	        // Launches IntentService "PingService" to set timer.
+	        //startService(mServiceIntent);
+	        //stopService(mServiceIntent);
+	        
+
+	        PingService pingService = PingService.get(getApplicationContext());
+	        if(pingService==null){
+	        	Log.i("onChangeNotify","pingService is null");
+	        	startService(mServiceIntent);
+	        	pingService = PingService.get(getApplicationContext());
+	        	pingService.issueNotification(mServiceIntent, message);
+	        }
+	        else{
+	        	Log.i("onChangeNotify","pingService is not null");
+	        	pingService.issueNotification(mServiceIntent, message);
+	        }
+	       }
+
+
+	@Override
+	public boolean handleMessage(Message msg) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }
