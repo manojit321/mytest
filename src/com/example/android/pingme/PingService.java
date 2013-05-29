@@ -55,6 +55,7 @@ public class PingService extends IntentService implements OnCompletionListener {
     public static final String ACTION_TOGGLE_PLAYBACK_NOTIFICATION = "org.manoj.action.ACTION_TOGGLE_PLAYBACK_NOTIFICATION";
     public static final String ACTION_NEXT = "org.manoj.action.ACTION_NEXT";
     public static final String ACTION_PREVIOUS = "org.manoj.action.ACTION_PREVIOUS";
+    public static final String ACTION_CLOSE = "org.manoj.action.ACTION_CLOSE";
     MainActivity main;
     public static PingService sInstance;
     private static MainActivity sActivities = null;
@@ -90,7 +91,7 @@ public class PingService extends IntentService implements OnCompletionListener {
         // The timer duration the user set. The default is 10 seconds.
         mMillis = intent.getIntExtra(CommonConstants.EXTRA_TIMER,
                 CommonConstants.DEFAULT_TIMER_DURATION);
-        NotificationManager nm = (NotificationManager)
+         mNotificationManager = (NotificationManager)
                 getSystemService(NOTIFICATION_SERVICE);
         String action = intent.getAction();
         // This section handles the 3 possible actions:
@@ -98,13 +99,13 @@ public class PingService extends IntentService implements OnCompletionListener {
         if(action.equals(CommonConstants.ACTION_PING)) {
             issueNotification(intent, mMessage);
         } else if (action.equals(CommonConstants.ACTION_SNOOZE)) {
-            nm.cancel(CommonConstants.NOTIFICATION_ID);
+        	mNotificationManager.cancel(CommonConstants.NOTIFICATION_ID);
             Log.d(CommonConstants.DEBUG_TAG, getString(R.string.snoozing));
             // Sets a snooze-specific "done snoozing" message.
             issueNotification(intent, getString(R.string.done_snoozing));
 
         } else if (action.equals(CommonConstants.ACTION_DISMISS)) {
-            nm.cancel(CommonConstants.NOTIFICATION_ID);
+        	mNotificationManager.cancel(CommonConstants.NOTIFICATION_ID);
         } 
         
         
@@ -121,7 +122,7 @@ public class PingService extends IntentService implements OnCompletionListener {
         
         else if (ACTION_TOGGLE_PLAYBACK_NOTIFICATION.equals(action)) {
         	if(main.playingCurrently){
-        		main.nPauseSetup(main);
+        		main.nPauseSetup();
         		//  main.finish();
         		  //nm.cancel(CommonConstants.NOTIFICATION_ID);
         	}else
@@ -133,6 +134,8 @@ public class PingService extends IntentService implements OnCompletionListener {
 			main.nNextSetup();
         } else if (ACTION_PREVIOUS.equals(action)) {
 			main.nPreviousSetup();
+        }else if (ACTION_CLOSE.equals(action)) {
+			mNotificationManager.cancel(CommonConstants.NOTIFICATION_ID);
         }
         
         
@@ -164,6 +167,7 @@ public class PingService extends IntentService implements OnCompletionListener {
                 new NotificationCompat.Builder(this)
                 .setSmallIcon(R.drawable.ic_stat_notification)
                 .setContentTitle("notification")
+                .setOngoing(true)
                 .setContentText(getString(R.string.ping))
                 .setContent(createNotification())
                  // requires VIBRATE permission
@@ -176,15 +180,15 @@ public class PingService extends IntentService implements OnCompletionListener {
                  */
                 .setStyle(new NotificationCompat.BigTextStyle()
                      .bigText(msg));
-/*
-        
+
+        /*
          * Clicking the notification itself displays ResultActivity, which provides
          * UI for snoozing or dismissing the notification.
-         * This is available through either the normal view or big view.
+         * This is available through either the normal view or big view.*/
          
          Intent resultIntent = main.getIntent();
          resultIntent.putExtra(CommonConstants.EXTRA_MESSAGE, msg);
-         resultIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+         resultIntent.setFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT);
 
          // Because clicking the notification opens a new ("special") activity, there's
          // no need to create an artificial back stack.
@@ -196,7 +200,7 @@ public class PingService extends IntentService implements OnCompletionListener {
                  PendingIntent.FLAG_UPDATE_CURRENT
          );
 
-         builder.setContentIntent(resultPendingIntent);*/
+         builder.setContentIntent(resultPendingIntent);
          startTimer(mMillis);
     }
 
@@ -252,14 +256,13 @@ public class PingService extends IntentService implements OnCompletionListener {
 	 */
 	public RemoteViews createNotification()
 	{
-		
+		RemoteViews views = new RemoteViews(getPackageName(), R.layout.playernotificationlayout);
+		try{
 		/************/
     	main = MainActivity.get(getApplicationContext());
     	//main = sActivities;
 		
 		//boolean playing = (state & FLAG_PLAYING) != 0;
-
-		RemoteViews views = new RemoteViews(getPackageName(), R.layout.playernotificationlayout);
 
 		/*Bitmap cover = song.getCover(this);
 		if (cover == null) {
@@ -268,6 +271,7 @@ public class PingService extends IntentService implements OnCompletionListener {
 			views.setImageViewBitmap(R.id.cover, cover);
 		}*/
 
+		
 		Song song = (Song)main.songsList.get(main.currentSongIndex);
 
 		//if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
@@ -284,9 +288,14 @@ public class PingService extends IntentService implements OnCompletionListener {
 			next.setComponent(service);
 			views.setOnClickPendingIntent(R.id.n_btnnext, PendingIntent.getService(this, 0, next, 0));
 
-			Intent close = new Intent(PingService.ACTION_PREVIOUS);
+			Intent prev = new Intent(PingService.ACTION_PREVIOUS);
+			prev.setComponent(service);
+			views.setOnClickPendingIntent(R.id.n_btnprevious, PendingIntent.getService(this, 0, prev, 0));
+			
+			Intent close = new Intent(PingService.ACTION_CLOSE);
 			close.setComponent(service);
-			views.setOnClickPendingIntent(R.id.n_btnprevious, PendingIntent.getService(this, 0, close, 0));
+			views.setOnClickPendingIntent(R.id.n_btnclose, PendingIntent.getService(this, 0, close, 0));
+			
 	/*	} else if (!playing) {
 			//title = getResources().getString(R.string.notification_title_paused, song.title);
 		}
@@ -310,6 +319,9 @@ public class PingService extends IntentService implements OnCompletionListener {
 		notification.icon = R.drawable.status_icon;
 		notification.flags |= Notification.FLAG_ONGOING_EVENT;
 		notification.contentIntent = mNotificationAction;*/
+		}catch(Exception e){
+			e.printStackTrace();
+		}
 		return views;
 	}
 	/**
@@ -319,6 +331,15 @@ public class PingService extends IntentService implements OnCompletionListener {
 	{
 		return sInstance;
 	}
+	
+	public void stopNotificattion(){
+		mNotificationManager.cancel(CommonConstants.NOTIFICATION_ID);
+	}
+	
+	
+	
+	
+	
 	
 	//service
 	public void playSongService(String url){

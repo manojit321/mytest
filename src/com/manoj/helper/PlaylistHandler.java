@@ -54,8 +54,8 @@ public class PlaylistHandler {
         final int base = cur.getInt(0);
         cur.close();
         ContentValues values = new ContentValues();
-
-        resolver.delete(uri, MediaStore.Audio.Playlists.Members.AUDIO_ID +" = "+audioId, null);
+        String[] whereVal = {audioId+""};
+        Log.i("","no of rows deleted "+resolver.delete(uri, MediaStore.Audio.Playlists.Members.AUDIO_ID +" = ?",whereVal));
     }
    public ArrayList<PlaylistBean> checkforplaylists(Context context)
    {
@@ -89,7 +89,86 @@ public class PlaylistHandler {
    public ArrayList songsforplaylists(Context context,String playlistname)
    {
 	   sInfo =new SongInfo();
-	   songsList = sInfo.getAlbumSongs(context.getContentResolver(),playlistname);
+	   songsList = sInfo.getPlaylistSongs(context.getContentResolver(),playlistname);
        return songsList;
    }
+   
+   public static void deletePlaylist(ContentResolver resolver, String pName) {
+	   String where = MediaStore.Audio.Playlists.NAME + "=?";
+	   String[] whereVal = {pName}; 
+	   int num = resolver.delete(MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI, where, whereVal);
+	   Log.i("","deleted "+num); 
+	}
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   public static Cursor query(Context context, Uri uri, String[] projection,
+	           String selection, String[] selectionArgs, String sortOrder, 
+	               int limit) 
+	{
+	 ContentResolver resolver = context.getContentResolver();
+	 if (resolver == null) {
+	     return null;
+	 }
+	
+	 if (limit > 0) {
+	     uri = uri.buildUpon().appendQueryParameter("limit", "" + limit).build();
+	 }
+	
+	 return resolver.query(uri, projection, selection, selectionArgs, sortOrder);
+	} 
+	
+	public static Cursor query(Context context, Uri uri, String[] projection,
+	       String selection, String[] selectionArgs, String sortOrder)
+	{
+	
+	 String[] projection1 = new String[]{MediaStore.Audio.Playlists.Members.AUDIO_ID};
+	
+	 return query(context, uri, projection1, selection, selectionArgs, sortOrder, 0);
+	}
+    public static int idFortrack(Context context, String path) {
+	    Cursor c = query(context, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+	                            new String[] { MediaStore.Audio.Media._ID },
+	                            MediaStore.Audio.Media.TITLE_KEY + "=?",
+	                            new String[] { path },
+	                            MediaStore.Audio.Media.TITLE_KEY);
+	    return intFromCursor(c);
+	}
+   	private static int intFromCursor(Cursor c) {
+	    int id = -1;
+
+	    if (c != null) {
+	        c.moveToFirst();
+
+	        if (!c.isAfterLast()) {
+	            id = c.getInt(0);
+	        }
+	    }
+
+	    c.close();
+	    return id;
+	}
+
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
 }

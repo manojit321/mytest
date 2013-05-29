@@ -31,7 +31,7 @@ THE SOFTWARE.
 		android:scaleType="fitCenter"
 		android:maxWidth="80dip"
 		android:adjustViewBounds="true"
-		android:layout_width="wrap_content"
+		android:layout_width="80dip"
 		android:layout_height="fill_parent"
 		android:layout_marginRight="5dip"
 		android:src="@drawable/adele"
@@ -68,27 +68,41 @@ THE SOFTWARE.
 		        android:id="@+id/n_btnprevious"
 		        android:layout_width="wrap_content"
 		        android:layout_height="wrap_content"
-		        android:background="@null"
 		        android:contentDescription="@string/skyfall"
-		        android:src="@drawable/btn_previous" />
+		        android:background="?android:attr/selectableItemBackground"
+		        android:src="@drawable/btn_previous"
+		        android:paddingLeft="10dp"
+		        android:paddingRight="10dp" />
 
 		    <ImageButton
 		        android:id="@+id/n_btnplay"
 		        android:layout_width="wrap_content"
 		        android:layout_height="wrap_content"
-		        android:background="@null"
+		        android:background="?android:attr/selectableItemBackground"
 		        android:contentDescription="@string/skyfall"
-		        android:paddingLeft="20dp"
+		        android:paddingLeft="10dp"
+		        android:paddingRight="10dp"
 		        android:src="@drawable/btn_play" />
 
 		    <ImageButton
 		        android:id="@+id/n_btnnext"
 		        android:layout_width="wrap_content"
 		        android:layout_height="wrap_content"
-		        android:background="@null"
+		        android:background="?android:attr/selectableItemBackground"
 		        android:contentDescription="@string/skyfall"
 		        android:src="@drawable/btn_next"
-		        android:paddingLeft="20dp" />
+		        android:paddingLeft="10dp"
+		        android:paddingRight="10dp" />
+		    
+		    <ImageButton
+		        android:id="@+id/n_btnclose"
+		        android:layout_width="wrap_content"
+		        android:layout_height="match_parent"
+		        android:background="@null"
+		        android:contentDescription="@string/skyfall"
+		        android:paddingLeft="20dp"
+		        android:src="@drawable/btn_close" />
+
 		</LinearLayout>
 
 	</LinearLayout>

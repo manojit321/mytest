@@ -278,6 +278,9 @@ public abstract class ImageWorker {
             // process method (as implemented by a subclass)
             if (bitmap == null && !isCancelled() && getAttachedImageView() != null
                     && !mExitTasksEarly) {
+            	if(params[0]==null){
+            		Log.i("params[0]", "null");
+            	}
                 bitmap = processBitmap(params[0]);
             }
 

@@ -52,6 +52,7 @@ public class ThemeList extends ListActivity {
 			 this.colorList.add("#669800");
 			 this.colorList.add("#FF8800");
 			 this.colorList.add("#CB0000");
+			 this.colorList.add("#000000");
 			}
 			
 				for (int i = 0; i < colorList.size(); i++) { 

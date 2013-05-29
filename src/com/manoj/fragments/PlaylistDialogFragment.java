@@ -1,6 +1,7 @@
 package com.manoj.fragments;
 
 
+import com.manoj.helper.PlaylistHandler;
 import com.manoj.macawplayer.MainActivity;
 import com.manoj.macawplayer.PlayListActivity;
 import com.manoj.macawplayer.R;
@@ -20,14 +21,20 @@ import android.widget.TextView;
 	public class PlaylistDialogFragment extends DialogFragment {
 
 		public static String playlistName = null;
-	    public static DialogFragment newInstance(String pName) {
+		PlaylistHandler playlistHandler;
+		static PlaylistFragment playlistFragment = null;
+		public static long playlist_id;
+	    public static DialogFragment newInstance(String pName,String pl_id,PlaylistFragment pl) {
 	        DialogFragment dialogFragment = new PlaylistDialogFragment();
 	        playlistName = pName;
+	        playlistFragment = pl;
+	        playlist_id = Long.parseLong(pl_id);
 	        return dialogFragment;
 	    }
 
 	    @Override
 	    public Dialog onCreateDialog(Bundle savedInstanceState) {
+	    	playlistHandler = new PlaylistHandler();
 	        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 	        Log.i("", ""+playlistName);
 	        //builder.setTitle(""+playlistName);
@@ -38,6 +45,7 @@ import android.widget.TextView;
 	        dialog.setContentView(R.layout.customplaylistdialog);
 	        TextView playlistTiltle = (TextView)dialog.findViewById(R.id.playlistTitle);
 	        playlistTiltle.setText(playlistName);
+
 	        Button editbutton = (Button)dialog.findViewById(R.id.editbutton);
 	        editbutton.setOnClickListener(new OnClickListener(){
 				@Override
@@ -48,19 +56,23 @@ import android.widget.TextView;
 				    Bundle bundle = new Bundle();
 				    //Add your data from getFactualResults method to bundle
 				    bundle.putString("playlistName", playlistName);  
+				    bundle.putLong("playlist_id", playlist_id);
 				    //Add the bundle to the intent
 				    in.putExtras(bundle);
 	                dialog.dismiss();  
 	                //closing playlist view
-	                getActivity().finish();
 	                getActivity().startActivity(in);
 				}
 	        });
+	        
 	        Button deletebutton = (Button)dialog.findViewById(R.id.deletebutton);
 	        deletebutton.setOnClickListener(new OnClickListener(){
 				@Override
 				public void onClick(View arg0) {
 					Log.i("", "delete");
+					playlistHandler.deletePlaylist(getActivity().getContentResolver(),playlistName);
+					playlistFragment.onUserSelectValue(null);
+					dialog.dismiss();
 				}
 	        });
 	        Button playbutton = (Button)dialog.findViewById(R.id.playbutton);
@@ -70,8 +82,8 @@ import android.widget.TextView;
 					Log.i("", "play");
 					Intent in =new Intent(getActivity().getApplicationContext(),MainActivity.class);
 	                //sending song index to player activity
-	                in.putExtra("album", playlistName);
-	                getActivity().setResult(200, in);
+	                in.putExtra("playlist_id", playlist_id+"");
+	                getActivity().setResult(204, in);
 	                dialog.dismiss();  
 	                //closing playlist view
 	                getActivity().finish();

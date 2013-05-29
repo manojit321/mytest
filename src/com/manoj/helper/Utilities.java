@@ -1,9 +1,12 @@
 package com.manoj.helper;
 
+import java.util.ArrayList;
+
 import com.manoj.macawplayer.R;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.media.audiofx.Equalizer;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -36,6 +39,10 @@ public class Utilities {
         return finalTimerString;
     }
 	
+	
+	public static long minuteToMilliseconds(int min){
+		return min * 60000;
+	}
 	
 	 /**
      * Function to get Progress percentage
@@ -134,5 +141,26 @@ public class Utilities {
 		else{
 			return Color.parseColor(fileHandlers.findKeyValue("temp.txt",context, "backgroundColor"));
 		}
+    }
+    
+    
+    public  ArrayList availableEqualizer(int priority,int audioSession){
+	    Equalizer mEqualizer = new Equalizer(priority, audioSession);
+	
+	    short m=mEqualizer.getNumberOfPresets();
+	
+	    ArrayList music_styles = new ArrayList();
+	
+	    for(int k=0; k <m ; k++){ 
+	    	music_styles.add(mEqualizer.getPresetName((short) k));
+	    }
+	   return music_styles;
+    }
+    
+    
+    public void setEquializer(int priority,int audioSession,short x){
+    	Equalizer mEqualizer = new Equalizer(priority, audioSession);
+    	mEqualizer.setEnabled(true);
+    	mEqualizer.usePreset(x);
     }
 }

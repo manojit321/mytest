@@ -129,6 +129,7 @@ public class SongCustomFragment extends Fragment {
 				song1.put("KEY_DURATION",songs.getDuration());
 				song1.put("KEY_THUMB_URL",songs.getAlbumArtUrl());
 				song1.put("KEY_TITLE_UNIQUE", songs.getTitle_key());
+				song1.put("KEY_Unique_row_id", songs.getUnique_row_id());
 	            songsListData.add(song1);
 	        }
 		scroll = true;
@@ -476,6 +477,7 @@ public class SongCustomFragment extends Fragment {
 				@Override
 				public void onClick(View v){
 					Toast.makeText(mContext, ""+t,Toast.LENGTH_LONG).show();
+					AvailablePlaylistDialogFragment.newInstance(tempSongsListData.get(t)).show(getFragmentManager(), TAG);
 				}
 			});
             // Finally load the image asynchronously into the ImageView, this also takes care of

@@ -15,6 +15,8 @@ public class Song {
    private Uri albumArtUrl;
    private String duration="";
    private String title_key = "";
+   private int audio_id;
+   private String unique_row_id = "";
 public Bitmap getBitmap() {
 	return bitmap;
 }
@@ -80,6 +82,30 @@ public String getTitle_key() {
 }
 public void setTitle_key(String title_key) {
 	this.title_key = title_key;
+}
+/**
+ * @return the audio_id
+ */
+public int getAudio_id() {
+	return audio_id;
+}
+/**
+ * @param audio_id the audio_id to set
+ */
+public void setAudio_id(int audio_id) {
+	this.audio_id = audio_id;
+}
+/**
+ * @return the unique_row_id
+ */
+public String getUnique_row_id() {
+	return unique_row_id;
+}
+/**
+ * @param unique_row_id the unique_row_id to set
+ */
+public void setUnique_row_id(String unique_row_id) {
+	this.unique_row_id = unique_row_id;
 }
    
 }

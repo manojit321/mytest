@@ -46,4 +46,11 @@
     <string name="timer_start">Setting the timer</string>
     <string name="sleep_error">Sleep failure</string>
     <string name="timer_finished">Timer finished.</string>
+    
+    
+    <string name="clear_cache_menu">Clear Caches</string>
+    <string name="clear_cache_complete_toast">Caches have been cleared</string>
+    <string name="imageview_description">Image Thumbnail</string>
+    <string name="no_network_connection_toast">No network connection found</string>
+    
 </resources>

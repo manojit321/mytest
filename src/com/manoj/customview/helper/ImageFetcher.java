@@ -69,6 +69,18 @@ public class ImageFetcher extends ImageResizer {
         super(context, imageWidth, imageHeight);
         init(context);
     }
+    
+    
+    /**
+     * Initialize providing a single target image size (used for both width and height);
+     *
+     * @param context
+     * @param imageSize
+     */
+    public ImageFetcher(Context context, int imageSize) {
+        super(context, imageSize);
+        init(context);
+    }
 
     /**
      * Initialize providing a single target image size (used for both width and height);

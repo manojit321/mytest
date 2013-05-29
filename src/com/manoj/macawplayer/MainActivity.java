@@ -7,14 +7,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
 
-
-import android.R.bool;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
@@ -40,7 +39,6 @@ import android.view.View;
 import android.view.Window;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -50,14 +48,13 @@ import android.widget.Toast;
 import android.widget.ViewFlipper;
 
 import com.example.android.pingme.CommonConstants;
-import com.example.android.pingme.MainActivityV1;
 import com.example.android.pingme.PingService;
 import com.manoj.helper.FileHandlers;
+import com.manoj.helper.PlaylistHandler;
 import com.manoj.helper.Song;
 import com.manoj.helper.SongInfo;
 import com.manoj.helper.Utilities;
 import com.manoj.listeners.ShakeEventListener;
-import com.manoj.service.RemoteControlReceiver;
 
 public class MainActivity extends Activity implements OnCompletionListener,
 		SeekBar.OnSeekBarChangeListener/*,SwipeInterface */, Callback{
@@ -93,7 +90,7 @@ public class MainActivity extends Activity implements OnCompletionListener,
 	private TextView songTotalDurationLabel;
 	private TextView songTitleLable;
 	private ImageView coverAlbumPlay;
-	private MediaPlayer mp;
+	public MediaPlayer mp;
 	private RelativeLayout homeScreen;
 
 	// handler to update Ui timer and progressbar
@@ -108,8 +105,8 @@ public class MainActivity extends Activity implements OnCompletionListener,
 	private SongInfo sInfo=new SongInfo();
 	private MusicIntentReceiver myReceiver;
 	//private RemoteControlReceiver remoteControlReceiver;
-	
-	
+	PlaylistHandler playlistHandler;
+	PingService pingService;	
 	
 	
 	
@@ -193,7 +190,7 @@ public class MainActivity extends Activity implements OnCompletionListener,
 			//RelativeLayout swipe_layout = (RelativeLayout) findViewById(R.id.homeScreen);
 			//swipe_layout.setOnTouchListener(swipe);
 			
-			
+			playlistHandler = new PlaylistHandler(); 
 			
 			//shake listener
 			mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
@@ -267,12 +264,56 @@ public class MainActivity extends Activity implements OnCompletionListener,
 			if (savedInstanceState != null){
 			    currentSongIndex = savedInstanceState.getInt("currentSongIndex");
 			    int seekTo = savedInstanceState.getInt("seekTo");
+			    isRepeat = savedInstanceState.getBoolean("isRepeat");
+			    if(isRepeat){
+			    	btnRepeat.setImageResource(R.drawable.btn_repeatfocussed);
+			    }
+			    isShuffle = savedInstanceState.getBoolean("isShuffle");
+			    if(isShuffle){
+			    	Collections.shuffle(songsList, new Random());
+			    	btnShuffle.setImageResource(R.drawable.btn_shufflefocused);
+			    	
+			    }
 			    playSong(currentSongIndex);
-			    Log.i("", "from restores previous session"+seekTo);
+			    Log.i("","shuffle"+isShuffle+" currentSon"+currentSongIndex);
+			    Log.i("", "from restores previous session"+((Song)songsList.get(currentSongIndex)).getUrl());
 			    mp.seekTo(seekTo);
 			  }else{
 				  playSong(currentSongIndex);
 			  }
+			
+			
+			
+			
+			
+			//retrive the previous state of the player
+			SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
+			currentSongIndex = sharedPref.getInt("currentSongIndex",0);
+		    int seekTo = sharedPref.getInt("seekTo",0);
+		    isRepeat = sharedPref.getBoolean("isRepeat",false);
+		    if(isRepeat){
+		    	btnRepeat.setImageResource(R.drawable.btn_repeatfocussed);
+		    }
+		    isShuffle = sharedPref.getBoolean("isShuffle",false);
+		    if(isShuffle){
+		    	Collections.shuffle(songsList, new Random());
+		    	btnShuffle.setImageResource(R.drawable.btn_shufflefocused);
+		    	
+		    }
+		    playSong(currentSongIndex);
+		    Log.i("","shuffle"+isShuffle+" currentSon"+currentSongIndex);
+		    Log.i("", "from restores previous session"+((Song)songsList.get(currentSongIndex)).getUrl());
+		    if(seekTo!=0)
+		    mp.seekTo(seekTo);
+		    
+		    
+		    
+		    
+		    
+		    
+		    
+		    
+
 			
 	/*	for loading form prperty files use the following logic
 	 * 	
@@ -328,7 +369,6 @@ public class MainActivity extends Activity implements OnCompletionListener,
 	        
 	        
 	        
-	        
 			
 			mp.setOnCompletionListener(new OnCompletionListener() {
 	            @Override
@@ -354,10 +394,10 @@ public class MainActivity extends Activity implements OnCompletionListener,
 				@Override
 				public void onClick(View v) {
 					Intent i = new Intent(getApplicationContext(),
-					//		ThemeList.class);
-							MainActivityV1.class);
+							ThemeList.class);
 					
 					//i.putParcelableArrayListExtra("songList",songsList );
+					
 					startActivityForResult(i, 100);
 				}
 	
@@ -369,7 +409,7 @@ public class MainActivity extends Activity implements OnCompletionListener,
 				@Override
 				public void onClick(View v) {
 					Intent i = new Intent(getApplicationContext(),
-							SwipeActivity.class);
+							SwipeViewActivity.class);
 					i.putExtra("songPlaying", currentSongIndex);
 					startActivityForResult(i, 101);
 				}
@@ -469,12 +509,16 @@ public class MainActivity extends Activity implements OnCompletionListener,
 	}
 	
 	
-	protected void onSaveInstanceState(Bundle bundle) {
+	/*protected void onSaveInstanceState(Bundle bundle) {
 		  super.onSaveInstanceState(bundle);
 		  Log.i("mainactivity","onSaveInstanceState"+mp.getCurrentPosition());
 		  bundle.putInt("currentSongIndex", currentSongIndex);
 		  bundle.putInt("seekTo", mp.getCurrentPosition());
-		}
+		  bundle.putBoolean("isRepeat",isRepeat);
+		  bundle.putBoolean("isShuffle",isShuffle);
+		  Log.i("", "from restores previous session"+((Song)songsList.get(currentSongIndex)).getUrl());
+		  Log.i("","shuffle"+isShuffle+" currentSon"+currentSongIndex);
+		}*/
 	
 	
 	
@@ -550,6 +594,9 @@ public class MainActivity extends Activity implements OnCompletionListener,
 			Toast.makeText(MainActivity.this, "Shake!"+data.getExtras().getString("album"), Toast.LENGTH_SHORT).show();
 			if(data.getExtras().getString("album")!=null){
 			songsList = sInfo.getAlbumSongs(getContentResolver(), data.getExtras().getString("album"));
+			/*if(songsList.isEmpty() && data.getExtras().getString("album").toString() != null){
+				songsList = sInfo.getAlbumSongs(getContentResolver(), data.getExtras().getString("album"));
+			}*/
 			currentSongIndex=0;
 			// play selected song
 			playSong(currentSongIndex);
@@ -573,6 +620,15 @@ public class MainActivity extends Activity implements OnCompletionListener,
 		if (resultCode == 203) {
 			String  title_key= data.getExtras().getString("title_key");
 			songsList = sInfo.getSongs(getContentResolver());
+			currentSongIndex = sInfo.getSongBasedOnTitle_key(songsList,title_key);
+			// play selected song
+			playSong(currentSongIndex);
+		}
+		//get songs of the album and play the given song index
+		if(resultCode == 204){
+			String  title_key= data.getExtras().getString("title_key");
+			String playlist_id = data.getExtras().getString("playlist_id");
+			songsList =playlistHandler.songsforplaylists(getApplicationContext(), playlist_id);
 			currentSongIndex = sInfo.getSongBasedOnTitle_key(songsList,title_key);
 			// play selected song
 			playSong(currentSongIndex);
@@ -871,7 +927,7 @@ public class MainActivity extends Activity implements OnCompletionListener,
 	    playingCurrently=true;
 		updateInfo();
 	}
-	public void nPauseSetup(MainActivity main){
+	public void nPauseSetup(){
 		Log.i("Setup", "pauseSetup");
 		mp.pause();
 		playingCurrently = false;
@@ -1004,6 +1060,7 @@ public class MainActivity extends Activity implements OnCompletionListener,
     @Override
     public void onStop(){
     	super.onStop();
+    	saveOnStop();
     	Log.i("onstop","onstop");
     }
     
@@ -1015,6 +1072,8 @@ public class MainActivity extends Activity implements OnCompletionListener,
     	stopService(mServiceIntent);
     	unregisterReceiver(myReceiver);
   	    mSensorManager.unregisterListener(mSensorListener);
+  	    if(pingService!=null)
+  	    	pingService.stopNotificattion();
     	PingService.removeActivity(this);
     }
     
@@ -1058,7 +1117,7 @@ public class MainActivity extends Activity implements OnCompletionListener,
 	        //stopService(mServiceIntent);
 	        
 
-	        PingService pingService = PingService.get(getApplicationContext());
+	         pingService = PingService.get(getApplicationContext());
 	        if(pingService==null){
 	        	Log.i("onChangeNotify","pingService is null");
 	        	startService(mServiceIntent);
@@ -1077,4 +1136,20 @@ public class MainActivity extends Activity implements OnCompletionListener,
 		// TODO Auto-generated method stub
 		return false;
 	}
+	
+	
+	public void saveOnStop(){
+		SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
+		SharedPreferences.Editor editor = sharedPref.edit();
+		editor.putInt("currentSongIndex", currentSongIndex);
+		editor.putInt("seekTo", mp.getCurrentPosition());
+		editor.putBoolean("isRepeat",isRepeat);
+		editor.putBoolean("isShuffle",isShuffle);
+		editor.commit();
+	}
+	
+	public void startTimerToPause(int time){
+	}
+	
+	
 }

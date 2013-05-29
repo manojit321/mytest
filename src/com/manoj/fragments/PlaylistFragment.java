@@ -9,6 +9,7 @@ import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +17,7 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListAdapter;
@@ -28,6 +30,7 @@ import com.manoj.helper.PlaylistHandler;
 import com.manoj.helper.Utilities;
 import com.manoj.macawplayer.MainActivity;
 import com.manoj.macawplayer.R;
+import com.manoj.macawplayer.ThemeList;
 
 public class PlaylistFragment extends Fragment {
 	ListView cp_listview;
@@ -35,6 +38,8 @@ public class PlaylistFragment extends Fragment {
 	private Utilities utilities;
 	private LinearLayout homeScreen;
 	PlaylistHandler playlistHandler;
+	private ImageButton btnCreatePlaylist;
+	private  PlaylistFragment playlistFragment = null;
 	ListView lv;
 	private static final String TAG = "dialog";
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -55,7 +60,7 @@ public class PlaylistFragment extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-
+        playlistFragment = this;
       // you only need to instantiate these the first time your fragment is
       // created; then, the method above will do the rest
 
@@ -69,7 +74,7 @@ public class PlaylistFragment extends Fragment {
 				homeScreen = (LinearLayout) getActivity().findViewById(R.id.customplaylist_layout);
 				utilities.colorSeter(homeScreen, getActivity().getApplicationContext());
 				
-				
+				btnCreatePlaylist = (ImageButton) getActivity().findViewById(R.id.createPlaylist);
 				playlistHandler = new PlaylistHandler();
 	    		ArrayList<PlaylistBean> playBeans = playlistHandler.checkforplaylists(getActivity());
 	    		final ArrayList<HashMap<String, String>> playlistMap = new ArrayList<HashMap<String,String>>(); 
@@ -77,8 +82,10 @@ public class PlaylistFragment extends Fragment {
 					for (int i = 0; i < playBeans.size(); i++) {
 			            // creating new HashMap
 			            HashMap<String, String> playlist=new HashMap<String, String>();
-			            String playlistName=playBeans.get(i).getPlaylistName();
+			            String playlistName =playBeans.get(i).getPlaylistName();
+			            long playlist_id = playBeans.get(i).getPlaylistId();
 			            playlist.put("playlistName",playlistName);
+			            playlist.put("playlist_id",playlist_id+"");
 			            playlistMap.add(playlist);
 			        }
 		
@@ -144,14 +151,38 @@ public class PlaylistFragment extends Fragment {
 		                    int position, long id) {
 						// Dialog box to get Options to delete or edit
 						
-						 PlaylistDialogFragment.newInstance(playlistMap.get(position).get("playlistName")).show(getFragmentManager(), TAG);
+						 PlaylistDialogFragment.newInstance(playlistMap.get(position).get("playlistName"),playlistMap.get(position).get("playlist_id"),playlistFragment).show(getFragmentManager(), TAG);
 					}
 					
 				});
+				
+				btnCreatePlaylist.setOnClickListener(new View.OnClickListener() {
+					
+					@Override
+					public void onClick(View v) {
+						
+						CreatePlaylistDialogFragment.newInstance(playlistFragment).show(getFragmentManager(), TAG);
+						
+						/*TimerDialogFragment timerDialogFragment = (TimerDialogFragment) TimerDialogFragment.newInstance();
+						timerDialogFragment.show(getFragmentManager(), "sdf");
+						
+						EquializerDialogFragment.newInstance(MainActivity.get(getActivity()).mp.getAudioSessionId()).show(getFragmentManager(), TAG);*/
+					}
+		
+				});
+		
 		
 		}catch(Exception e){
 			e.printStackTrace();
 		}
 
+    }
+    
+    public void onUserSelectValue(String created){
+    	Log.i("", "playlist created"+created);
+    	if(created!=null){
+    		playlistHandler.createPlaylist(getActivity().getContentResolver(), created);
+    	}
+    	playlistFragment.onActivityCreated(getArguments());
     }
 }

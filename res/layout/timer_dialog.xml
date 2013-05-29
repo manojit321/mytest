@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="280dp"
+    android:layout_height="220dp"
+    android:background="@android:color/black"
+    android:orientation="vertical" >
+
+    <TextView 
+        android:id="@+id/timer_titler_text"
+				    style="@android:style/TextAppearance.Holo.DialogWindowTitle"
+				    android:layout_marginTop="10dp"
+			        android:singleLine="true"
+			        android:ellipsize="end"
+			        android:layout_width="match_parent"
+			        android:layout_height="wrap_content"
+			        android:gravity="center"
+			        android:text="Sleep Timer"
+			    />
+    <View android:id="@+id/titleDivider"
+            	android:layout_width="fill_parent"
+            	android:layout_height="2dip"
+            	android:visibility="visible"
+            	android:layout_marginTop="10dip"
+            	android:background="@android:color/holo_blue_light" />
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="25dp"
+        android:gravity="center" >
+        
+        
+        
+       <ImageButton  
+	    android:id="@+id/subTime" 
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/arrow_sub" 
+        android:layout_marginRight="20dp"
+        android:background="@android:color/transparent"
+	    />
+        <TextView
+            android:id="@+id/timer_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0 min"
+            android:textColor="#ffffff"
+            android:textSize="20dp" />
+        
+        
+        <ImageButton  
+	    android:id="@+id/addTime" 
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/arrow_add"
+        android:background="@android:color/transparent" 
+        android:layout_marginLeft="20dp"
+	    />
+
+    </LinearLayout>
+
+    <SeekBar
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/timerBar"
+        android:layout_marginTop="20dp"
+        android:max="100" />
+
+<RelativeLayout
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content" >
+
+    <Button
+        android:id="@+id/cancelbutton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@drawable/selectorbutton"
+        android:text="Cancel"
+        android:textColor="@android:color/white"
+        android:textColorHighlight="#6DCAEC"
+        android:width="140dp" />
+
+    <Button
+        android:id="@+id/okbutton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignTop="@+id/cancelbutton"
+        android:background="@drawable/selectorbutton"
+        android:text="Ok"
+        android:textColor="@android:color/white"
+        android:textColorHighlight="#6DCAEC"
+        android:width="140dp" />
+
+    <View
+        android:id="@+id/view1"
+        android:layout_width="fill_parent"
+        android:layout_height="1dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignTop="@+id/cancelbutton"
+        android:background="#90909090" />
+
+    <View
+        android:layout_width="1dp"
+        android:layout_height="40dp"
+        android:layout_below="@+id/view1"
+        android:layout_toRightOf="@+id/cancelbutton"
+        android:background="#90909090" />
+</RelativeLayout>
+
+</LinearLayout>

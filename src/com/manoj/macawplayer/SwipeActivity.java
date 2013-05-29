@@ -1,13 +1,10 @@
 package com.manoj.macawplayer;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Vector;
 
 import android.content.Context;
-import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -16,9 +13,11 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.Animation;
+import android.view.animation.TranslateAnimation;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TabHost;
 import android.widget.TabHost.TabContentFactory;
 
@@ -27,12 +26,10 @@ import com.manoj.customview.helper.ImageCache;
 import com.manoj.customview.helper.ImageFetcher;
 import com.manoj.fragments.AlbumFragment;
 import com.manoj.fragments.ArtistFragment;
+import com.manoj.fragments.ImageGridFragment;
 import com.manoj.fragments.PlaylistFragment;
 import com.manoj.fragments.SongCustomFragment;
-import com.manoj.fragments.SongFragment;
-import com.manoj.helper.FileHandlers;
 import com.manoj.helper.Utilities;
-import com.manoj.macawplayer.SwipeActivity.TabFactory;
  
 /**
  * The <code>TabsViewPagerFragmentActivity</code> class implements the Fragment activity that maintains a TabHost using a ViewPager.
@@ -50,6 +47,9 @@ public class SwipeActivity extends FragmentActivity implements TabHost.OnTabChan
     private FrameLayout homeScreen;
     private Utilities utilities;
     private int currentSongIndex;
+    public View previousView;
+    public View currentView;
+    public int currentTab;
     /**
      *
      * @author mwho
@@ -104,6 +104,8 @@ public class SwipeActivity extends FragmentActivity implements TabHost.OnTabChan
         setContentView(R.layout.tabs_viewpager_layout);
         homeScreen=(FrameLayout)findViewById(android.R.id.tabcontent);
         utilities.colorSeter(homeScreen, getApplicationContext());
+        
+        utilities.colorSeter((LinearLayout)findViewById(R.id.tablayout), getApplicationContext());
         currentSongIndex = getIntent().getExtras().getInt("songPlaying");
      // Fetch screen height and width, to use as our max size when loading images as this
         // activity runs full screen
@@ -156,6 +158,7 @@ public class SwipeActivity extends FragmentActivity implements TabHost.OnTabChan
         //fragments.add(Fragment.instantiate(this, SongFragment.class.getName()));
         fragments.add(Fragment.instantiate(this, SongCustomFragment.class.getName()));
         fragments.add(Fragment.instantiate(this, PlaylistFragment.class.getName()));
+        fragments.add(Fragment.instantiate(this, ImageGridFragment.class.getName()));
         this.mPagerAdapter  = new PagerAdapter(super.getSupportFragmentManager(), fragments);
         //
         this.mViewPager = (ViewPager)super.findViewById(R.id.viewpager);
@@ -182,6 +185,8 @@ public class SwipeActivity extends FragmentActivity implements TabHost.OnTabChan
         SwipeActivity.AddTab(this, this.mTabHost, this.mTabHost.newTabSpec("Tab4").setIndicator("Songs"), ( tabInfo = new TabInfo("Tab4", SongCustomFragment.class, args)));
         this.mapTabInfo.put(tabInfo.tag, tabInfo);
         SwipeActivity.AddTab(this, this.mTabHost, this.mTabHost.newTabSpec("Tab5").setIndicator("Playlist"), ( tabInfo = new TabInfo("Tab5", PlaylistFragment.class, args)));
+        this.mapTabInfo.put(tabInfo.tag, tabInfo);
+        SwipeActivity.AddTab(this, this.mTabHost, this.mTabHost.newTabSpec("Tab6").setIndicator("Album View"), ( tabInfo = new TabInfo("Tab6", ImageGridFragment.class, args)));
         this.mapTabInfo.put(tabInfo.tag, tabInfo);
         // Default to first tab
         //this.onTabChanged("Tab4");
@@ -210,6 +215,16 @@ public class SwipeActivity extends FragmentActivity implements TabHost.OnTabChan
         //TabInfo newTab = this.mapTabInfo.get(tag);
         int pos = this.mTabHost.getCurrentTab();
         Log.i("", "onTabChanged   current pos :"+pos+"tag selected  :"+tag);
+        View currentView = mTabHost.getCurrentView();
+        if (mTabHost.getCurrentTab() > currentTab)
+        {
+            currentView.setAnimation( inFromRightAnimation() );
+        }
+        else
+        {
+            currentView.setAnimation( outToRightAnimation() );
+        }
+        currentTab = mTabHost.getCurrentTab();
         this.mViewPager.setCurrentItem(pos);
     }
  
@@ -248,5 +263,27 @@ public class SwipeActivity extends FragmentActivity implements TabHost.OnTabChan
  
     }
     
-    
+    public Animation inFromRightAnimation()
+    {
+        Animation inFromRight = new TranslateAnimation(
+                Animation.RELATIVE_TO_PARENT, +1.0f,
+                Animation.RELATIVE_TO_PARENT, 0.0f,
+                Animation.RELATIVE_TO_PARENT, 0.0f,
+                Animation.RELATIVE_TO_PARENT, 0.0f);
+        inFromRight.setDuration(240);
+        inFromRight.setInterpolator(new AccelerateInterpolator());
+        return inFromRight;
+    }
+
+    public Animation outToRightAnimation()
+    {
+        Animation outtoLeft = new TranslateAnimation(
+                Animation.RELATIVE_TO_PARENT, -1.0f,
+                Animation.RELATIVE_TO_PARENT, 0.0f,
+                Animation.RELATIVE_TO_PARENT, 0.0f,
+                Animation.RELATIVE_TO_PARENT, 0.0f);
+        outtoLeft.setDuration(240);
+        outtoLeft.setInterpolator(new AccelerateInterpolator());
+        return outtoLeft;
+    }
 }

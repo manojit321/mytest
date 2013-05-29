@@ -5,7 +5,7 @@
     android:versionName="1.0"
     android:installLocation="auto" >
     <uses-sdk
-        android:minSdkVersion="5"
+        android:minSdkVersion="14"
         android:targetSdkVersion="17" />
     
     
@@ -22,7 +22,7 @@
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme" >
+         >
 <!--     <receiver android:name=".MusicIntentReceiver" >
         <intent-filter>
             <action android:name="android.intent.action.HEADSET_PLUG" />
@@ -80,6 +80,13 @@
              >
          </activity>
          <activity
+             android:screenOrientation="nosensor"
+             android:name=".SwipeViewActivity"
+             android:windowSoftInputMode="stateHidden"
+             android:permission="com.manoj.MYPERMISSION" 
+             >
+         </activity>
+         <activity
             android:name=".CustomizedListView">
          </activity>
          
@@ -118,6 +125,7 @@
 				<action android:name="org.manoj.action.ACTION_TOGGLE_PLAYBACK_NOTIFICATION" />
 				<action android:name="org.manoj.action.ACTION_NEXT" />
 				<action android:name="org.manoj.action.ACTION_PREVIOUS" />
+				<action android:name="org.manoj.action.ACTION_CLOSE" />
 			</intent-filter>
         </service>
         <activity
